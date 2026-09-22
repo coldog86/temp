@@ -1,12 +1,29 @@
-   sudo mkdir -p /jfrog/artifactory-filestore
-   sudo rsync -avh /var/opt/jfrog/artifactory/data/artifactory/filestore/ /jfrog/artifactory-filestore/
-   sudo chown -R artifactory:artifactory /jfrog/artifactory-filestore
-   sudo systemctl start artifactory
-   sudo journalctl -u artifactory -f
 
-
-
-sudo pkill -f artifactory
-sleep 5
-ps aux | grep -i artifactory
-
+Sep 22 14:40:20 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[449253]: /usr/bin/netstat
+Sep 22 14:40:20 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[449253]: 2026-09-22T04:40:20.975Z [shell] [INFO ] [] [artifactoryManage.sh:133      ] [main] - Artifactory Tomcat started in normal mode
+Sep 22 14:40:21 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[449253]: 2026-09-22T04:40:21.023Z [shell] [INFO ] [] [artifactoryCommon.sh:1594     ] [main] - Artifactory running with PID 456435
+Sep 22 14:40:21 dpriapp310.mgt.dis.gov.au su[456652]: (to artifactory) root on none
+Sep 22 14:40:21 dpriapp310.mgt.dis.gov.au su[456652]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:22 dpriapp310.mgt.dis.gov.au su[456854]: (to artifactory) root on none
+Sep 22 14:40:22 dpriapp310.mgt.dis.gov.au su[456854]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:23 dpriapp310.mgt.dis.gov.au su[456854]: pam_unix(su:session): session closed for user artifactory
+Sep 22 14:40:23 dpriapp310.mgt.dis.gov.au su[457044]: (to artifactory) root on none
+Sep 22 14:40:23 dpriapp310.mgt.dis.gov.au su[457044]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:24 dpriapp310.mgt.dis.gov.au su[457044]: pam_unix(su:session): session closed for user artifactory
+Sep 22 14:40:24 dpriapp310.mgt.dis.gov.au su[457202]: (to artifactory) root on none
+Sep 22 14:40:24 dpriapp310.mgt.dis.gov.au su[457202]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:27 dpriapp310.mgt.dis.gov.au su[457680]: (to artifactory) root on none
+Sep 22 14:40:27 dpriapp310.mgt.dis.gov.au su[457680]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:29 dpriapp310.mgt.dis.gov.au su[457972]: (to artifactory) root on none
+Sep 22 14:40:29 dpriapp310.mgt.dis.gov.au su[457972]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:30 dpriapp310.mgt.dis.gov.au su[458143]: (to artifactory) root on none
+Sep 22 14:40:30 dpriapp310.mgt.dis.gov.au su[458143]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:32 dpriapp310.mgt.dis.gov.au su[458327]: (to artifactory) root on none
+Sep 22 14:40:32 dpriapp310.mgt.dis.gov.au su[458327]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:40:33 dpriapp310.mgt.dis.gov.au su[458532]: (to artifactory) root on none
+Sep 22 14:40:33 dpriapp310.mgt.dis.gov.au su[458532]: pam_unix(su:session): session opened for user artifactory(uid=994) by (uid=0)
+Sep 22 14:44:40 dpriapp310.mgt.dis.gov.au systemd[1]: artifactory.service: start operation timed out. Terminating.
+Sep 22 14:44:40 dpriapp310.mgt.dis.gov.au systemd[1]: artifactory.service: Failed with result 'timeout'.
+Sep 22 14:44:40 dpriapp310.mgt.dis.gov.au systemd[1]: Failed to start Artifactory service.
+Sep 22 14:44:40 dpriapp310.mgt.dis.gov.au systemd[1]: artifactory.service: Consumed 3.976s CPU time, 145.1M memory peak.
+[cm3745_x@dpriapp310 ~]$
