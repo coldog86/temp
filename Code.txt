@@ -48,3 +48,15 @@ sudo chcon -R --reference=/var/lib/pgsql.old /jfrog/pgsql
 sudo systemctl start postgresql*
 sudo -u postgres psql -c "select 1;"
 
+
+
+
+
+[cm3745_x@dpriapp310 ~]$
+ls -Zd /jfrog/pgsql /jfrog/pgsql/*/data
+ls: cannot access '/jfrog/pgsql/*/data': Permission denied
+system_u:object_r:default_t:s0  /jfrog/pgsql
+[cm3745_x@dpriapp310 ~]$ sudo ls -Zd /jfrog/pgsql /jfrog/pgsql/*/data
+ls: cannot access '/jfrog/pgsql/*/data': No such file or directory
+system_u:object_r:default_t:s0  /jfrog/pgsql
+
