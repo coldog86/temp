@@ -13,3 +13,24 @@ sudo -u postgres psql -d artifactory -c "\dt db_properties"   # sanity-check the
 sudo systemctl restart artifactory
 sudo tail -f /var/opt/jfrog/artifactory/log/artifactory-service.log
 
+
+
+sudo systemctl stop artifactory
+sudo systemctl stop postgresql*
+systemctl cat postgresql* | grep -i PGDATA      # confirms the path, e.g. /var/lib/pgsql/16/data
+df -h /jfrog
+sudo mkdir -p /jfrog/pgsql
+sudo rsync -aHAX --numeric-ids /var/lib/pgsql/ /jfrog/pgsql/
+sudo diff -rq /var/lib/pgsql /jfrog/pgsql && echo IDENTICAL
+sudo mv /var/lib/pgsql /var/lib/pgsql.old      # rename only, still on the same full disk for now
+sudo mkdir /var/lib/pgsql
+sudo chown postgres:postgres /var/lib/pgsql
+sudo mount --bind /jfrog/pgsql /var/lib/pgsql
+echo '/jfrog/pgsql  /var/lib/pgsql  none  bind  0 0' | sudo tee -a /etc/fstab
+sudo mount -a && findmnt /var/lib/pgsql
+sudo semanage fcontext -a -e /var/lib/pgsql /jfrog/pgsql
+sudo restorecon -Rv /jfrog/pgsql
+sudo systemctl start postgresql*
+sudo -u postgres psql -c "select 1;"
+sudo systemctl start artifactory
+sudo tail -f /var/opt/jfrog/artifactory/log/artifactory-service.log
