@@ -3,3 +3,21 @@
    sudo chown -R artifactory:artifactory /jfrog/artifactory-filestore
    sudo systemctl start artifactory
    sudo journalctl -u artifactory -f
+
+
+
+[cm3745_x@dpriapp310 ~]$    sudo systemctl start artifactory
+Job for artifactory.service failed because the service did not take the steps required by its unit configuration.
+See "systemctl status artifactory.service" and "journalctl -xeu artifactory.service" for details.
+[cm3745_x@dpriapp310 ~]$
+   sudo journalctl -u artifactory -f
+Sep 22 14:36:39 dpriapp310.mgt.dis.gov.au systemd[1]: Stopped Artifactory service.
+Sep 22 14:36:39 dpriapp310.mgt.dis.gov.au systemd[1]: Starting Artifactory service...
+Sep 22 14:36:39 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[442506]: 2026-09-22T04:36:39.902Z [shell] [INFO ] [] [systemYamlHelper.sh:622       ] [main] - Resolved .shared.database.type (postgresql) from /opt/jfrog/artifactory/var/etc/system.yaml
+Sep 22 14:36:39 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[442506]: 2026-09-22T04:36:39.987Z [shell] [INFO ] [] [systemYamlHelper.sh:622       ] [main] - Resolved .shared.database.type (postgresql) from /opt/jfrog/artifactory/var/etc/system.yaml
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[442506]: 2026-09-22T04:36:40.059Z [shell] [INFO ] [] [systemYamlHelper.sh:622       ] [main] - Resolved .shared.database.type (postgresql) from /opt/jfrog/artifactory/var/etc/system.yaml
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[442506]: /usr/bin/netstat
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au artifactoryManage.sh[442506]: 2026-09-22T04:36:40.107Z [shell] [INFO ] [] [artifactoryManage.sh:82       ] [main] - Artifactory Tomcat already started
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au systemd[1]: artifactory.service: Can't open PID file /run/artifactory.pid (yet?) after start: No such file or directory
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au systemd[1]: artifactory.service: Failed with result 'protocol'.
+Sep 22 14:36:40 dpriapp310.mgt.dis.gov.au systemd[1]: Failed to start Artifactory service.
