@@ -26,3 +26,8 @@ tmpfs                             769M     0  769M   0% /run/user/706206106
 0       /opt/jfrog/artifactory/var/derby.log
 0       /opt/jfrog/artifactory/var/bootstrap
 [cm3745_x@dpriapp310 ~]$
+
+
+  sudo find /opt/jfrog/artifactory/var/log -name "*.log.*" -mtime +7 -delete
+  sudo du -sh /opt/jfrog/artifactory/var/backup/*
+  sudo du -sh /opt/jfrog/artifactory/var/data/artifactory/trash
