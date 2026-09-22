@@ -46,3 +46,4 @@ tmpfs                             769M     0  769M   0% /run/user/994
 tmpfs                             769M     0  769M   0% /run/user/706206106
 [cm3745_x@dpriapp310 ~]$
 
+sudo du -sh /var/opt/* 2>/dev/null | sort -rh
