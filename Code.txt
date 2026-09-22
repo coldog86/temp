@@ -53,4 +53,4 @@ sudo du -sh /var/opt/* 2>/dev/null | sort -rh
 [cm3745_x@dpriapp310 ~]$
 
 
-
+sudo find /var/opt -type f -mtime +7 -exec du -h {} \; 2>/dev/null | sort -rh | head -30
