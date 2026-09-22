@@ -34,3 +34,9 @@ sudo systemctl start postgresql*
 sudo -u postgres psql -c "select 1;"
 sudo systemctl start artifactory
 sudo tail -f /var/opt/jfrog/artifactory/log/artifactory-service.log
+
+
+
+[cm3745_x@dpriapp310 ~]$ sudo semanage fcontext -a -e /var/lib/pgsql /jfrog/pgsql
+libsemanage.semanage_make_sandbox: Could not copy files to sandbox /var/lib/selinux/targeted/tmp. (No space left on device).
+OSError: No space left on device
