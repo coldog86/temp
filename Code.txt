@@ -47,3 +47,10 @@ tmpfs                             769M     0  769M   0% /run/user/706206106
 [cm3745_x@dpriapp310 ~]$
 
 sudo du -sh /var/opt/* 2>/dev/null | sort -rh
+sudo du -sh /var/opt/* 2>/dev/null | sort -rh
+16G     /var/opt/jfrog
+114M    /var/opt/microsoft
+[cm3745_x@dpriapp310 ~]$
+
+
+
