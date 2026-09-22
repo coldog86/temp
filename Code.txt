@@ -17,4 +17,12 @@ tmpfs                             769M     0  769M   0% /run/user/994
 tmpfs                             769M     0  769M   0% /run/user/706206106
 
 
-sudo du -sh /opt/jfrog/artifactory/var/* | sort -rh
+[cm3745_x@dpriapp310 ~]$ sudo du -sh /opt/jfrog/artifactory/var/* | sort -rh
+7.9G    /opt/jfrog/artifactory/var/data
+7.0G    /opt/jfrog/artifactory/var/backup
+1.2G    /opt/jfrog/artifactory/var/log
+2.5M    /opt/jfrog/artifactory/var/work
+704K    /opt/jfrog/artifactory/var/etc
+0       /opt/jfrog/artifactory/var/derby.log
+0       /opt/jfrog/artifactory/var/bootstrap
+[cm3745_x@dpriapp310 ~]$
