@@ -1,21 +1,80 @@
-sudo tail -100 /var/opt/jfrog/artifactory/log/router-service.log
-sudo tail -100 /var/opt/jfrog/artifactory/log/access-service.log
+function Add-DatabaseUserAndRoles {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $Username,
 
-sudo tail -150 /var/opt/jfrog/artifactory/log/artifactory-service.log
+        [Parameter(Mandatory=$true)]
+        [string] $DatabaseName,
 
-sudo systemctl status postgresql
+        [Parameter(Mandatory=$false)]
+        [string] $DatabaseServer = 'localhost\SQLEXPRESS',
 
-sudo -u postgres psql -c "\l"
+        [Parameter(Mandatory=$false)]
+        [string[]] $DatabaseRoles = @('db_datareader'),
 
-curl -s http://localhost:8082/artifactory/api/system/ping
-curl -s http://localhost:8082/router/api/v1/system/health
+        [Parameter(Mandatory=$false)]
+        [string] $DatabaseServerPermissionsOptions = 'Trusted_Connection=true;',
+
+        [Parameter(Mandatory=$false)]
+        [switch] $CreateSqlUser,
+
+        [Parameter(Mandatory=$false)]
+        [string] $SqlUserPassword
+    )
+
+    $LoginOptions = "FROM WINDOWS WITH DEFAULT_DATABASE=[$DatabaseName]"
+    if ($CreateSqlUser) {
+        $LoginOptions = "WITH PASSWORD='$SqlUserPassword', DEFAULT_DATABASE=[$DatabaseName], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF"
+    }
+
+    $addUserSQLCommand = @"
+USE [master]
+IF EXISTS(SELECT * FROM msdb.sys.syslogins WHERE UPPER([name]) = UPPER('$Username'))
+BEGIN
+    DROP LOGIN [$Username]
+END
+
+CREATE LOGIN [$Username] $LoginOptions
+
+USE [$DatabaseName]
+IF EXISTS(SELECT * FROM sys.sysusers WHERE UPPER([name]) = UPPER('$Username'))
+BEGIN
+    DROP USER [$Username]
+END
+
+CREATE USER [$Username] FOR LOGIN [$Username]
+
+"@
+
+    foreach ($DatabaseRole in $DatabaseRoles) {
+        $addUserSQLCommand += @"
+
+ALTER ROLE [$DatabaseRole] ADD MEMBER [$Username]
+"@
+    }
+
+    Write-Output "Adding $UserName to $DatabaseName with the following permissions: $($DatabaseRoles -Join ', ')"
+    Write-Debug "running the following: \n $addUserSQLCommand"
 
 
+    $Connection = New-Object System.Data.SQLClient.SQLConnection
+    $Connection.ConnectionString = "server='$DatabaseServer';database='master';$DatabaseServerPermissionsOptions"
+    $Connection.Open()
+    $Command = New-Object System.Data.SQLClient.SQLCommand
+    $Command.CommandText = $addUserSQLCommand
+    $Command.Connection = $Connection
+    $Command.ExecuteNonQuery()
+    $Connection.Close()
+}
 
-sudo tail -100 /var/opt/jfrog/artifactory/log/access-service.log
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'accessConfigurationStorageServiceImpl' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/service/db/AccessConfigurationStorageServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'accessConfigsDao' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/db/dao/AccessConfigsDao.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'accessJdbcHelperImpl' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/db/util/AccessJdbcHelperImpl.class]: Failed to instantiate [org.jfrog.access.server.db.util.AccessJdbcHelperImpl]: Constructor threw exception
+# Please choose from one of the three listed account types below. The commands will grant database permissions to a user account of your choice. This account will be used in your Connection String for the CCM Service and Web package installs ahead.
 
+# Add Sql Server Login / User:
+Add-DatabaseUserAndRoles -DatabaseName 'ChocolateyManagement' -Username 'ChocoUser' -SqlUserPassword '<SUPER HARD PASSWORD>' -CreateSqlUser  -DatabaseRoles @('db_datareader', 'db_datawriter')
 
-[cm3745_x@dpriapp310 .../jfrog/artifactory]$
-sudo tail -150 /var/opt/jfrog/artifactory/log/artifactory-service.log
-Could not find database table: db_properties
+# Add Local Windows User:
+Add-DatabaseUserAndRoles -DatabaseName 'ChocolateyManagement' -Username "$(hostname)\ChocolateyLocalAdmin" -DatabaseRoles @('db_datareader', 'db_datawriter')
+
+# Add Active Directory Domain User to a default instance of SQL Server:
+Add-DatabaseUserAndRoles -DatabaseServer 'localhost' -DatabaseName 'ChocolateyManagement' -Username "<DomainName>\<Username>" -DatabaseRoles @('db_datareader', 'db_datawriter')
