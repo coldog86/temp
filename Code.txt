@@ -31,3 +31,49 @@ tmpfs                             769M     0  769M   0% /run/user/706206106
   sudo find /opt/jfrog/artifactory/var/log -name "*.log.*" -mtime +7 -delete
   sudo du -sh /opt/jfrog/artifactory/var/backup/*
   sudo du -sh /opt/jfrog/artifactory/var/data/artifactory/trash
+
+
+[cm3745_x@dpriapp310 ~]$ sudo find /opt/jfrog/artifactory/var/log -name "*.log.*" -mtime +7 -delete
+[cm3745_x@dpriapp310 ~]$ df -h
+Filesystem                        Size  Used Avail Use% Mounted on
+devtmpfs                          3.8G     0  3.8G   0% /dev
+tmpfs                             3.8G   84K  3.8G   1% /dev/shm
+tmpfs                             1.6G  8.8M  1.5G   1% /run
+/dev/mapper/vg_soe-root            12G  2.4G  9.7G  20% /
+/dev/sda1                         2.0G  708M  1.3G  36% /boot
+/dev/mapper/vg_data-lv_jfrog      100G  3.2G   97G   4% /jfrog
+/dev/mapper/vg_soe-home           8.0G   90M  7.9G   2% /home
+/dev/mapper/vg_soe-var             17G   17G   64M 100% /var
+/dev/mapper/vg_soe-tmp            4.0G   61M  3.9G   2% /tmp
+/dev/mapper/vg_soe-opt             13G  7.0G  6.1G  54% /opt
+/dev/mapper/vg_soe-var_tmp        4.0G   61M  3.9G   2% /var/tmp
+/dev/mapper/vg_soe-var_log         12G  499M   12G   5% /var/log
+/dev/mapper/vg_soe-var_log_audit   13G  434M   13G   4% /var/log/audit
+tmpfs                             769M     0  769M   0% /run/user/994
+tmpfs                             769M     0  769M   0% /run/user/706206106
+[cm3745_x@dpriapp310 ~]$ sudo du -sh /opt/jfrog/artifactory/var/* | sort -rh
+7.9G    /opt/jfrog/artifactory/var/data
+7.0G    /opt/jfrog/artifactory/var/backup
+1.1G    /opt/jfrog/artifactory/var/log
+2.5M    /opt/jfrog/artifactory/var/work
+704K    /opt/jfrog/artifactory/var/etc
+0       /opt/jfrog/artifactory/var/derby.log
+0       /opt/jfrog/artifactory/var/bootstrap
+[cm3745_x@dpriapp310 ~]$ sudo find /opt/jfrog/artifactory/var/log -name "*.log.*" -mtime +1 -delete
+[cm3745_x@dpriapp310 ~]$ sudo du -sh /opt/jfrog/artifactory/var/* | sort -rh
+7.9G    /opt/jfrog/artifactory/var/data
+7.0G    /opt/jfrog/artifactory/var/backup
+992M    /opt/jfrog/artifactory/var/log
+2.5M    /opt/jfrog/artifactory/var/work
+704K    /opt/jfrog/artifactory/var/etc
+0       /opt/jfrog/artifactory/var/derby.log
+0       /opt/jfrog/artifactory/var/bootstrap
+[cm3745_x@dpriapp310 ~]$ sudo du -sh /opt/jfrog/artifactory/var/backup/*
+du: cannot access '/opt/jfrog/artifactory/var/backup/*': No such file or directory
+[cm3745_x@dpriapp310 ~]$ sudo du -sh /opt/jfrog/artifactory/var/backup/*^C
+[cm3745_x@dpriapp310 ~]$ sudo cd /opt/jfrog/artifactory/var/backup/
+[cm3745_x@dpriapp310 ~]$ ls
+[cm3745_x@dpriapp310 ~]$ ls -a
+.  ..  .bash_history  .bash_logout  .bash_profile  .bashrc  .cache  .lesshst  .tmux.conf  .vimrc
+[cm3745_x@dpriapp310 ~]$
+
