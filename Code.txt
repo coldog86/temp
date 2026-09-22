@@ -1,5 +1,5 @@
-sudo tail -100 /var/opt/jfrog/router/log/router-service.log
-sudo tail -100 /var/opt/jfrog/access/log/access-service.log
+sudo tail -100 /var/opt/jfrog/artifactory/log/router-service.log
+sudo tail -100 /var/opt/jfrog/artifactory/log/access-service.log
 
 sudo tail -150 /var/opt/jfrog/artifactory/log/artifactory-service.log
 
@@ -9,3 +9,162 @@ sudo -u postgres psql -c "\l"
 
 curl -s http://localhost:8082/artifactory/api/system/ping
 curl -s http://localhost:8082/router/api/v1/system/health
+
+
+
+sudo tail -100 /var/opt/jfrog/artifactory/log/access-service.log
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'accessConfigurationStorageServiceImpl' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/service/db/AccessConfigurationStorageServiceImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'accessConfigsDao' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/db/dao/AccessConfigsDao.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'accessJdbcHelperImpl' defined in URL [jar:file:/opt/jfrog/artifactory/app/access/tomcat/webapps/access/WEB-INF/lib/access-server-core-7.191.14.jar!/org/jfrog/access/server/db/util/AccessJdbcHelperImpl.class]: Failed to instantiate [org.jfrog.access.server.db.util.AccessJdbcHelperImpl]: Constructor threw exception
+
+
+[cm3745_x@dpriapp310 .../jfrog/artifactory]$
+sudo tail -150 /var/opt/jfrog/artifactory/log/artifactory-service.log
+2026-09-22T03:29:19.628Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamObserver:104] [efault-executor-2126] - Access Platform Config Client 4 - stream cancelled
+2026-09-22T03:29:19.853Z [jfrt ] [INFO ] [                ] [.c.p.GrpcProjectClientImpl:157] [ribe ccssprjctsclnt3] - Initializing project resources in-memory storage
+2026-09-22T03:29:19.853Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamObserver:104] [efault-executor-2126] - Access Projects Client 3 - stream cancelled
+2026-09-22T03:29:20.005Z [jfrt ] [INFO ] [                ] [ffectedConfigStreamObserver:40] [ ccsspltfrmcnfgclnt5] - publishing full invalidation and attempting to resubscribe to affected configuration changes
+2026-09-22T03:29:20.007Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamObserver:104] [efault-executor-2126] - Access Platform Config Client 5 - stream cancelled
+2026-09-22T03:29:20.157Z [jfrt ] [INFO ] [                ] [ectedEntitiesStreamObserver:34] [ribe ccssprmssnclnt3] - publishing full invalidation and attempting to resubscribe to affected permissions changes
+2026-09-22T03:29:20.158Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamObserver:104] [efault-executor-2126] - Access Permission Client 3 - stream cancelled
+2026-09-22T03:29:20.215Z [jfrt ] [INFO ] [                ] [ffectedConfigStreamObserver:40] [ ccsspltfrmcnfgclnt6] - publishing full invalidation and attempting to resubscribe to affected configuration changes
+2026-09-22T03:29:20.215Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamObserver:104] [efault-executor-2126] - Access Platform Config Client 6 - stream cancelled
+2026-09-22T03:29:20.634Z [jfrt ] [INFO ] [                ] [ectedEntitiesStreamObserver:34] [ribe ccssprmssnclnt4] - publishing full invalidation and attempting to resubscribe to affected permissions changes
+2026-09-22T03:29:20.634Z [jfrt ] [INFO ] [                ] [j.a.c.g.GrpcStreamOb2026-09-22T04:17:44.383Z [jfrt ] [INFO ] [91151c325527c800a27ba98f1a14ceaa] [o.a.c.h.ArtifactoryHome:254   ] [Catalina-utility-1  ] - Creating Artifactory home at 'null'
+2026-09-22T04:17:44.559Z [jfrt ] [INFO ] [91151c325527c800a27ba98f1a14ceaa] [o.a.c.h.HaNodeProperties:65   ] [Catalina-utility-1  ] - Artifactory is running in non-clustered mode.
+2026-09-22T04:17:44.609Z [jfrt ] [INFO ] [91151c325527c800a27ba98f1a14ceaa] [tifactoryHomeConfigListener:80] [Catalina-utility-1  ] - Resolved Home: '/opt/jfrog/artifactory
+2026-09-22T04:17:45.238Z [jfrt ] [INFO ] [91151c325527c800a27ba98f1a14ceaa] [o.a.c.h.ArtifactoryHome:1009  ] [Catalina-utility-1  ] - Setting 'composerNew,pubNew,terraformNew,alpineNew,swiftNew,vagrantNew,vcsNew,nugetNew,cocoapodsNew,permissions-cache-legacy' to system property 'spring.profiles.active'
+2026-09-22T04:17:45.297Z [jfrt ] [INFO ] [91151c325527c800a27ba98f1a14ceaa] [o.a.c.h.ArtifactoryHome:1009  ] [Catalina-utility-1  ] - Setting 'composerNew,pubNew,terraformNew,alpineNew,swiftNew,vagrantNew,vcsNew,nugetNew,cocoapodsNew,permissions-cache-legacy' to system property 'spring.profiles.active'
+2026-09-22T04:17:45.351Z [jfrt ] [INFO ] [                ] [o.j.c.w.FileWatcher:146       ] [file-watcher-poller ] - Starting watch of folder configurations
+2026-09-22T04:17:46.929Z [jfrt ] [ERROR] [                ] [tifactoryHomeConfigListener:54] [Catalina-utility-1  ] - Failed initializing Home. Caught exception:
+java.lang.IllegalStateException: Could not find database table: db_properties
+        at org.artifactory.converter.VersionProviderImpl.init(VersionProviderImpl.java:150)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initVersion(BasicConfigurationManager.java:190)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initArtifactoryInstallation(BasicConfigurationManager.java:150)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initialize(BasicConfigurationManager.java:141)
+        at org.artifactory.lifecycle.webapp.servlet.ArtifactoryHomeConfigListener.initBasicConfigManager(ArtifactoryHomeConfigListener.java:60)
+        at org.artifactory.lifecycle.webapp.servlet.ArtifactoryHomeConfigListener.contextInitialized(ArtifactoryHomeConfigListener.java:51)
+        at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4160)
+        at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4583)
+        at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:170)
+        at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:583)
+        at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:677)
+        at org.apache.catalina.startup.HostConfig.deployDescriptor(HostConfig.java:628)
+        at org.apache.catalina.startup.HostConfig$DeployDescriptor.run(HostConfig.java:1861)
+        at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+        at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+        at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:309)
+        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+        at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74)
+        at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.lang.IllegalStateException: Could not find database table: db_properties
+        at org.artifactory.common.config.db.DbVersionDao.isDbPropertiesTableExists(DbVersionDao.java:51)
+        at org.artifactory.converter.VersionProviderImpl.tryToResolveFromDb(VersionProviderImpl.java:238)
+        at org.artifactory.converter.VersionProviderImpl.getCompoundVersionDetailsFromDbIfExists(VersionProviderImpl.java:163)
+        at org.artifactory.converter.VersionProviderImpl.loadOriginalDbVersion(VersionProviderImpl.java:184)
+        at org.artifactory.converter.VersionProviderImpl.init(VersionProviderImpl.java:146)
+        ... 19 common frames omitted
+Caused by: org.postgresql.util.PSQLException: Connection to localhost:5432 refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:427)
+        at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:52)
+        at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:295)
+        at org.postgresql.Driver.makeConnection(Driver.java:437)
+        at org.postgresql.Driver.connect(Driver.java:305)
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:144)
+        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:373)
+        at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:210)
+        at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488)
+        at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576)
+        at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97)
+        at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111)
+        at org.jfrog.storage.wrapper.JFrogDataSourceWrapper.getConnection(JFrogDataSourceWrapper.java:112)
+        at org.jfrog.storage.wrapper.JFrogDataSourceWrapper.invoke(JFrogDataSourceWrapper.java:76)
+        at jdk.proxy2/jdk.proxy2.$Proxy3.getConnection(Unknown Source)
+        at org.jfrog.storage.util.DbUtils.withMetadata(DbUtils.java:779)
+        at org.jfrog.storage.util.DbUtils.tableExists(DbUtils.java:275)
+        at org.artifactory.common.config.db.DbVersionUtil.isDbPropertiesTableExists(DbVersionUtil.java:50)
+        at org.artifactory.common.config.db.DbVersionDao.isDbPropertiesTableExists(DbVersionDao.java:48)
+        ... 23 common frames omitted
+Caused by: java.net.ConnectException: Connection refused
+        at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+        at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:639)
+        at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:543)
+        at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:594)
+        at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:284)
+        at java.base/java.net.Socket.connect(Socket.java:659)
+        at org.postgresql.core.PGStream.createSocket(PGStream.java:270)
+        at org.postgresql.core.PGStream.<init>(PGStream.java:131)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:221)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:367)
+        ... 41 common frames omitted
+2026-09-22T04:17:46.960Z [jfrt ] [INFO ] [                ] [actoryContextConfigListener:87] [Catalina-utility-1  ] - Artifactory context initialization started for context: null
+2026-09-22T04:17:46.961Z [jfrt ] [ERROR] [                ] [actoryContextConfigListener:92] [Catalina-utility-1  ] - Failed initializing Artifactory context: Artifactory home not initialized.
+2026-09-22T04:40:15.263Z [jfrt ] [INFO ] [96c8fee3689208956c18d1e5c065b542] [o.a.c.h.ArtifactoryHome:254   ] [Catalina-utility-1  ] - Creating Artifactory home at 'null'
+2026-09-22T04:40:15.579Z [jfrt ] [INFO ] [96c8fee3689208956c18d1e5c065b542] [o.a.c.h.HaNodeProperties:65   ] [Catalina-utility-1  ] - Artifactory is running in non-clustered mode.
+2026-09-22T04:40:15.678Z [jfrt ] [INFO ] [96c8fee3689208956c18d1e5c065b542] [tifactoryHomeConfigListener:80] [Catalina-utility-1  ] - Resolved Home: '/opt/jfrog/artifactory
+2026-09-22T04:40:16.674Z [jfrt ] [INFO ] [96c8fee3689208956c18d1e5c065b542] [o.a.c.h.ArtifactoryHome:1009  ] [Catalina-utility-1  ] - Setting 'terraformNew,pubNew,composerNew,cocoapodsNew,nugetNew,vcsNew,vagrantNew,swiftNew,alpineNew,permissions-cache-legacy' to system property 'spring.profiles.active'
+2026-09-22T04:40:16.821Z [jfrt ] [INFO ] [96c8fee3689208956c18d1e5c065b542] [o.a.c.h.ArtifactoryHome:1009  ] [Catalina-utility-1  ] - Setting 'terraformNew,pubNew,composerNew,cocoapodsNew,nugetNew,vcsNew,vagrantNew,swiftNew,alpineNew,permissions-cache-legacy' to system property 'spring.profiles.active'
+2026-09-22T04:40:16.879Z [jfrt ] [INFO ] [                ] [o.j.c.w.FileWatcher:146       ] [file-watcher-poller ] - Starting watch of folder configurations
+2026-09-22T04:40:18.720Z [jfrt ] [ERROR] [                ] [tifactoryHomeConfigListener:54] [Catalina-utility-1  ] - Failed initializing Home. Caught exception:
+java.lang.IllegalStateException: Could not find database table: db_properties
+        at org.artifactory.converter.VersionProviderImpl.init(VersionProviderImpl.java:150)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initVersion(BasicConfigurationManager.java:190)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initArtifactoryInstallation(BasicConfigurationManager.java:150)
+        at org.artifactory.lifecycle.webapp.servlet.BasicConfigurationManager.initialize(BasicConfigurationManager.java:141)
+        at org.artifactory.lifecycle.webapp.servlet.ArtifactoryHomeConfigListener.initBasicConfigManager(ArtifactoryHomeConfigListener.java:60)
+        at org.artifactory.lifecycle.webapp.servlet.ArtifactoryHomeConfigListener.contextInitialized(ArtifactoryHomeConfigListener.java:51)
+        at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4160)
+        at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4583)
+        at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:170)
+        at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:583)
+        at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:677)
+        at org.apache.catalina.startup.HostConfig.deployDescriptor(HostConfig.java:628)
+        at org.apache.catalina.startup.HostConfig$DeployDescriptor.run(HostConfig.java:1861)
+        at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+        at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+        at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:309)
+        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+        at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:74)
+        at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.lang.IllegalStateException: Could not find database table: db_properties
+        at org.artifactory.common.config.db.DbVersionDao.isDbPropertiesTableExists(DbVersionDao.java:51)
+        at org.artifactory.converter.VersionProviderImpl.tryToResolveFromDb(VersionProviderImpl.java:238)
+        at org.artifactory.converter.VersionProviderImpl.getCompoundVersionDetailsFromDbIfExists(VersionProviderImpl.java:163)
+        at org.artifactory.converter.VersionProviderImpl.loadOriginalDbVersion(VersionProviderImpl.java:184)
+        at org.artifactory.converter.VersionProviderImpl.init(VersionProviderImpl.java:146)
+        ... 19 common frames omitted
+Caused by: org.postgresql.util.PSQLException: Connection to localhost:5432 refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:427)
+        at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:52)
+        at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:295)
+        at org.postgresql.Driver.makeConnection(Driver.java:437)
+        at org.postgresql.Driver.connect(Driver.java:305)
+        at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:144)
+        at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:373)
+        at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:210)
+        at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488)
+        at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576)
+        at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97)
+        at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111)
+        at org.jfrog.storage.wrapper.JFrogDataSourceWrapper.getConnection(JFrogDataSourceWrapper.java:112)
+        at org.jfrog.storage.wrapper.JFrogDataSourceWrapper.invoke(JFrogDataSourceWrapper.java:76)
+        at jdk.proxy2/jdk.proxy2.$Proxy3.getConnection(Unknown Source)
+        at org.jfrog.storage.util.DbUtils.withMetadata(DbUtils.java:779)
+        at org.jfrog.storage.util.DbUtils.tableExists(DbUtils.java:275)
+        at org.artifactory.common.config.db.DbVersionUtil.isDbPropertiesTableExists(DbVersionUtil.java:50)
+        at org.artifactory.common.config.db.DbVersionDao.isDbPropertiesTableExists(DbVersionDao.java:48)
+        ... 23 common frames omitted
+Caused by: java.net.ConnectException: Connection refused
+        at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+        at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:639)
+        at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:543)
+        at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:594)
+        at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:284)
+        at java.base/java.net.Socket.connect(Socket.java:659)
+        at org.postgresql.core.PGStream.createSocket(PGStream.java:270)
+        at org.postgresql.core.PGStream.<init>(PGStream.java:131)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:221)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:367)
+        ... 41 common frames omitted
+2026-09-22T04:40:18.796Z [jfrt ] [INFO ] [                ] [actoryContextConfigListener:87] [Catalina-utility-1  ] - Artifactory context initialization started for context: null
+2026-09-22T04:40:18.803Z [jfrt ] [ERROR] [                ] [actoryContextConfigListener:92] [Catalina-utility-1  ] - Failed initializing Artifactory context: Artifactory home not initialized.
