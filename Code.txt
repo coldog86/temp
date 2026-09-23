@@ -1,45 +1,13 @@
-chocolatey-management-service v0.18.0
-chocolatey-management-service package files install completed. Performing other installation steps.
-No pre-existing appsettings.json found.
-WARNING: A certificate matching Subject DNPIAPP301.mgtnp.dis.gov.au was found. Using this to continue installation
-WARNING: Using 394A4256BBB46C12159EB145207A30BE72F6FEED
-Creating appsettings.json file...
-WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
-The following test will validate that the user installing the package has access to the
-database, but it won't validate that the end user running the Chocolatey Central
-Management Service or Website Application Pool has access to the database.  This should
-be validated separately.
-WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
-The following test will validate that the user installing the package has access to the
-database, but it won't validate that the end user running the Chocolatey Central
-Management Service or Website Application Pool has access to the database.  This should
-be validated separately.
-Connection successfully established
-appsettings.json file created at C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\service
-Progress: 100% - 1/1 completed
-SSL Certificate deletion failed, Error: 2
-The system cannot find the file specified.
+Get-EventLog -LogName Application -Source "chocolatey-central-management" -Newest 5
+
+Get-EventLog -LogName Application -Newest 20 | Where-Object {$_.Source -like "*.NET*" -or $_.TimeGenerated -gt (Get-Date).AddMinutes(-10)} | Format-List
+
+sc.exe qc chocolatey-central-management
 
 
-No remaining netsh bindings for port 24020, moving on...
-Progress: 100% - 1/1 completed                                                                                         Creating firewall port
-MSFT_NetFirewallRule (CreationClassName = "MSFT?FW?FirewallRule?{fbaddfd6-de39-434..., PolicyRuleName = "", SystemCreationClassName = "", SystemName = "")
-Progress: 100% - 1/1 completed                                                                                         Installing Windows service named 'chocolatey-central-management' pointing to 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\service\chocolatey-central-management.exe'...
-Installing service chocolatey-central-management...
-Service chocolatey-central-management has been successfully installed.
-Creating EventLog source chocolatey-central-management in log Application...
-Windows service named 'chocolatey-central-management' successfully installed.
-Starting Windows service named 'chocolatey-central-management' if it is not running...
-ERROR: Unable to start Windows service with the name 'chocolatey-central-management':
- Cannot start service chocolatey-central-management on computer '.'.
-The install of chocolatey-management-service was NOT successful.
-Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\chocolateyInstall.ps1'.
- See log for details.
 
-Chocolatey installed 0/1 packages. 1 packages failed.
- See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
-
-Failures
- - chocolatey-management-service (exited -1) - Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\chocolateyInstall.ps1'.
- See log for details.
-PS E:\>
+CREATE LOGIN [DOMAIN\ComputerName$] FROM WINDOWS;
+USE ChocolateyManagement;
+CREATE USER [DOMAIN\ComputerName$] FOR LOGIN [DOMAIN\ComputerName$];
+ALTER ROLE db_datareader ADD MEMBER [DOMAIN\ComputerName$];
+ALTER ROLE db_datawriter ADD MEMBER [DOMAIN\ComputerName$];
