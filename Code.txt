@@ -1,18 +1,37 @@
-
-PS E:\> choco install chocolatey-management-service --source='e:\choco packages' --package-parameters="'/ConnectionString:Server=<Localhost\SQLEXPRESS>;Database=ChocolateyManagement;Trusted_Connection=True;'"
-Chocolatey v2.6.0 Business
-Installing the following packages:
-chocolatey-management-service
-By installing, you accept licenses for the packages.
-Downloading package from source 'e:\choco packages'
-
 chocolatey-management-service v0.18.0
 chocolatey-management-service package files install completed. Performing other installation steps.
 No pre-existing appsettings.json found.
 WARNING: A certificate matching Subject DNPIAPP301.mgtnp.dis.gov.au was found. Using this to continue installation
 WARNING: Using 394A4256BBB46C12159EB145207A30BE72F6FEED
 Creating appsettings.json file...
-ERROR: Exception calling "Open" with "0" argument(s): "A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)"
+WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
+The following test will validate that the user installing the package has access to the
+database, but it won't validate that the end user running the Chocolatey Central
+Management Service or Website Application Pool has access to the database.  This should
+be validated separately.
+WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
+The following test will validate that the user installing the package has access to the
+database, but it won't validate that the end user running the Chocolatey Central
+Management Service or Website Application Pool has access to the database.  This should
+be validated separately.
+Connection successfully established
+appsettings.json file created at C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\service
+Progress: 100% - 1/1 completed
+SSL Certificate deletion failed, Error: 2
+The system cannot find the file specified.
+
+
+No remaining netsh bindings for port 24020, moving on...
+Progress: 100% - 1/1 completed                                                                                         Creating firewall port
+MSFT_NetFirewallRule (CreationClassName = "MSFT?FW?FirewallRule?{fbaddfd6-de39-434..., PolicyRuleName = "", SystemCreationClassName = "", SystemName = "")
+Progress: 100% - 1/1 completed                                                                                         Installing Windows service named 'chocolatey-central-management' pointing to 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\service\chocolatey-central-management.exe'...
+Installing service chocolatey-central-management...
+Service chocolatey-central-management has been successfully installed.
+Creating EventLog source chocolatey-central-management in log Application...
+Windows service named 'chocolatey-central-management' successfully installed.
+Starting Windows service named 'chocolatey-central-management' if it is not running...
+ERROR: Unable to start Windows service with the name 'chocolatey-central-management':
+ Cannot start service chocolatey-central-management on computer '.'.
 The install of chocolatey-management-service was NOT successful.
 Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\chocolateyInstall.ps1'.
  See log for details.
@@ -24,4 +43,3 @@ Failures
  - chocolatey-management-service (exited -1) - Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-service\tools\chocolateyInstall.ps1'.
  See log for details.
 PS E:\>
-
