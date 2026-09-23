@@ -1,1 +1,1 @@
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "CREATE LOGIN [IIS APPPOOL\ChocolateyCentralManagement] FROM WINDOWS; USE ChocolateyManagement; CREATE USER [IIS APPPOOL\ChocolateyCentralManagement] FOR LOGIN [IIS APPPOOL\ChocolateyCentralManagement]; ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement]; ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];"
+choco install chocolatey-central-management 
