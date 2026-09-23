@@ -1,5 +1,9 @@
-sudo ls -laZ /jfrog/pgsql
-sudo ls -ldZ /jfrog/pgsql/data
+# Find FDQN for current machine
+$hostName = [System.Net.Dns]::GetHostName()
+$domainName = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
 
-sudo chcon -R --reference=/var/lib/pgsql.old /jfrog/pgsql
-sudo ls -ldZ /jfrog/pgsql /jfrog/pgsql/data
+if(-Not $hostName.endswith($domainName)) {
+  $hostName += "." + $domainName
+}
+
+choco config set --name="'centralManagementServiceUrl'" --value="'https://$($hostname):24020/ChocolateyManagementService'"
