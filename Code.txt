@@ -1,1 +1,1 @@
-choco install chocolatey-management-service -y --package-parameters="'/ConnectionString:Server=<Localhost\SQLEXPRESS>;Database=ChocolateyManagement;Trusted_Connection=True;'"
+choco download chocolatey-management-service --source="https://licensedpackages.chocolatey.org/api/v2/" --outputdirectory="C:\temp\ccm-transfer"
