@@ -1,18 +1,1 @@
-PS E:\packages\temp> choco download chocolatey-management-service --source="https://licensedpackages.chocolatey.org/api/v2/"
-Chocolatey v2.6.0 Business
-Downloading existing package(s) to E:\packages\temp\download
-Unable to resolve dependency 'dotnet-10.0-aspnetruntime'. Source(s) used: 'https://licensedpackages.chocolatey.org/api/v2/'.
-PS E:\packages\temp> choco install dotnet-10.0-aspnetruntime
-Chocolatey v2.6.0 Business
-Installing the following packages:
-dotnet-10.0-aspnetruntime
-By installing, you accept licenses for the packages.
-dotnet-10.0-aspnetruntime v10.0.12 already installed.
- Use --force to reinstall, specify a version to install, or try upgrade.
-
-Chocolatey installed 0/1 packages.
- See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
-
-Warnings:
- - dotnet-10.0-aspnetruntime - dotnet-10.0-aspnetruntime v10.0.12 already installed.
- Use --force to reinstall, specify a version to install, or try upgrade.
+choco download chocolatey-management-service --source="https://licensedpackages.chocolatey.org/api/v2/;https://community.chocolatey.org/api/v2/" --outputdirectory="E:\packages\temp\download"
