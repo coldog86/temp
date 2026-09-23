@@ -1,9 +1,1 @@
-# Find FDQN for current machine
-$hostName = [System.Net.Dns]::GetHostName()
-$domainName = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
-
-if(-Not $hostName.endswith($domainName)) {
-  $hostName += "." + $domainName
-}
-
-choco config set --name="'centralManagementServiceUrl'" --value="'https://$($hostname):24020/ChocolateyManagementService'"
+choco install chocolatey-management-service -y --package-parameters="'/ConnectionString:Server=<Localhost\SQLEXPRESS>;Database=ChocolateyManagement;Trusted_Connection=True; /Username:<LocalWindowsAccount>'" --package-parameters-sensitive="'/Password:<Local account password>'"
