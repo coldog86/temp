@@ -1,6 +1,1 @@
-
-artifactory - http://epriapp348.application.enet:8082/artifactory/api/nuget/Choco-Local (Authenticated)| Priority 0|Bypass Proxy - True|Self-Service - False|Admin Only - False.
-chocolately - https://community.chocolatey.org/api/v2/ | Priority 0|Bypass Proxy - False|Self-Service - False|Admin Only - False.
-chocolatey.licensed - https://licensedpackages.chocolatey.org/api/v2/ (Authenticated)| Priority 10|Bypass Proxy - False|Self-Service - False|Admin Only - False.
-local [Disabled] - e:\packages | Priority 0|Bypass Proxy - False|Self-Service - False|Admin Only - False.
-PS E:\packages\temp> choco download chocolatey-management-web --source="https://licensedpackages.chocolatey.org/api/v2/;https://community.chocolatey.org/api/v2/" --outputdirectory="E:\packages\temp"
+choco source add --name="chocolatey.licensed" --source="https://licensedpackages.chocolatey.org/api/v2/" --priority=0
