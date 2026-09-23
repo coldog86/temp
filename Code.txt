@@ -1,1 +1,70 @@
-choco install chocolatey-management-web -y --package-parameters="'/ConnectionString:Server=Localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+function Get-ChocoDependencyTree {
+    param(
+        [string]$PackageName,
+        [string]$Source,
+        [string]$TempDir,
+        [System.Collections.Generic.HashSet[string]]$Seen = (New-Object 'System.Collections.Generic.HashSet[string]')
+    )
+
+    $key = $PackageName.ToLower()
+    if ($Seen.Contains($key)) { return @() }
+    $Seen.Add($key) | Out-Null
+
+    # Plain download, not internalized -- just fetching the nupkg so we can
+    # read its nuspec and find what it actually depends on.
+    $probeDir = Join-Path $TempDir "probe_$PackageName"
+    New-Item -ItemType Directory -Path $probeDir -Force | Out-Null
+    choco download $PackageName --no-progress --force --source="$Source" --outputdirectory="$probeDir" 2>&1 | Out-Null
+
+    $nupkg = Get-ChildItem -Path $probeDir -Filter "*.nupkg" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $nupkg) {
+        Write-Warning "Could not resolve $PackageName -- skipping its dependency walk, but keeping it in the list."
+        Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+        return @($PackageName)
+    }
+
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg.FullName)
+    $nuspecEntry = $zip.Entries | Where-Object { $_.Name -like "*.nuspec" } | Select-Object -First 1
+    $reader = New-Object System.IO.StreamReader($nuspecEntry.Open())
+    [xml]$nuspecXml = $reader.ReadToEnd()
+    $reader.Close()
+    $zip.Dispose()
+
+    $result = @($PackageName)
+
+    $deps = $nuspecXml.package.metadata.dependencies.dependency
+    foreach ($dep in $deps) {
+        if ($dep.id) {
+            $result += Get-ChocoDependencyTree -PackageName $dep.id -Source $Source -TempDir $TempDir -Seen $Seen
+        }
+    }
+
+    Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+    return $result
+}
+
+# --- Resolve the full tree dynamically ---
+$source = "https://community.chocolatey.org/api/v2/;https://licensedpackages.chocolatey.org/api/v2/"
+$probeTempDir = "E:\packages\temp\probe"
+$outputDir = "E:\packages\temp\download"
+
+$allPackages = Get-ChocoDependencyTree -PackageName "chocolatey-management-service" -Source $source -TempDir $probeTempDir | Select-Object -Unique
+Write-Host "Resolved $($allPackages.Count) packages in the dependency tree:"
+$allPackages | ForEach-Object { Write-Host "  $_" }
+
+# --- Now internalize every one of them for real ---
+$results = @()
+foreach ($pkg in $allPackages) {
+    Write-Host "Internalizing $pkg..."
+    choco download $pkg --internalize --internalize-all-urls --no-progress --force `
+        --source="$source" --outputdirectory="$outputDir"
+
+    $results += [pscustomobject]@{
+        Package = $pkg
+        Result  = if ($LASTEXITCODE -ne 0) { "Failed" } else { "Success" }
+    }
+}
+
+$results | Format-Table -AutoSize
