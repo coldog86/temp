@@ -1,1 +1,1 @@
-choco source add --name="chocolatey.licensed" --source="https://licensedpackages.chocolatey.org/api/v2/" --priority=0
+choco install chocolatey-management-web -y --package-parameters="'/ConnectionString:Server=Localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
