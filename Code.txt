@@ -1,77 +1,11 @@
-notepad C:\tools\chocolatey-management-web\web.config
-
-# Stop everything first
-Stop-Website -Name ChocolateyCentralManagement -ErrorAction SilentlyContinue
-Stop-Service chocolatey-central-management -ErrorAction SilentlyContinue
-
-# Uninstall the packages
-choco uninstall chocolatey-management-web -y --force
-choco uninstall chocolatey-management-service -y --force
-choco uninstall chocolatey-management-database -y --force
-
-# Drop the database entirely rather than trying to patch a broken schema.
-# SET SINGLE_USER forces any lingering connections closed before the drop.
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'ChocolateyManagement') BEGIN ALTER DATABASE ChocolateyManagement SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE ChocolateyManagement; END"
-
-# Clean up leftover folders choco uninstall doesn't always fully remove
-Remove-Item "C:\tools\chocolatey-management-web" -Recurse -Force -ErrorAction SilentlyContinue
-Get-ChildItem "C:\ProgramData\chocolatey\lib" -Filter "chocolatey-management-*" -Directory | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-
-# Remove the IIS site/app pool if choco uninstall left them behind
-Import-Module WebAdministration -ErrorAction SilentlyContinue
-Remove-Website -Name "ChocolateyCentralManagement" -ErrorAction SilentlyContinue
-Remove-WebAppPool -Name "ChocolateyCentralManagement" -ErrorAction SilentlyContinue
-
-
-choco install IIS-WebServer
-choco install IIS-ApplicationInit
-choco install dotnet-aspnetcoremodule-v2 
-choco install dotnet-10.0-runtime
-choco install dotnet-10.0-aspnetruntime
-
-choco install chocolatey-management-database -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
-
-$hostName = [System.Net.Dns]::GetHostName()
-$domainName = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
-$fqdnUser = "$hostName\ChocolateyLocalAdmin"
-
-$grantSql = @"
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = '$fqdnUser')
-    CREATE LOGIN [$fqdnUser] FROM WINDOWS;
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
-    CREATE LOGIN [IIS APPPOOL\ChocolateyCentralManagement] FROM WINDOWS;
-
-USE ChocolateyManagement;
-
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$fqdnUser')
-    CREATE USER [$fqdnUser] FOR LOGIN [$fqdnUser];
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
-    CREATE USER [IIS APPPOOL\ChocolateyCentralManagement] FOR LOGIN [IIS APPPOOL\ChocolateyCentralManagement];
-
-ALTER ROLE db_datareader ADD MEMBER [$fqdnUser];
-ALTER ROLE db_datawriter ADD MEMBER [$fqdnUser];
-ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
-ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
-"@
-
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
-
-
-choco install chocolatey-management-service -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
-
-# Verify
-Get-Service chocolatey-central-management
-Get-Content "C:\ProgramData\chocolatey\logs\ccm-service.log" -Tail 20
-
-
-
-choco upgrade chocolatey-management-database --version 0.18.0 -y --source="E:\packages\temp\download" `
-  --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
-
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "SELECT TOP 5 MigrationId FROM ChocolateyManagement.dbo.__EFMigrationsHistory ORDER BY MigrationId DESC;"
-
-choco install chocolatey-management-web -y --force --source="$src" `
-  --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
-
-Start-Sleep -Seconds 5
-Invoke-WebRequest -Uri "http://localhost" -UseBasicParsing | Select-Object StatusCode
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <location path="." inheritInChildApplications="false">
+    <system.webServer>
+      <handlers>
+        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+      </handlers>
+      <aspNetCore processPath="dotnet" arguments=".\ChocolateySoftware.ChocolateyManagement.Web.Mvc.dll" stdoutLogEnabled="false" stdoutLogFile=".\App_Data\Logs\stdout" hostingModel="inprocess" />
+    </system.webServer>
+  </location>
+</configuration>
