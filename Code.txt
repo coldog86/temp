@@ -63,6 +63,5 @@ Get-Content "C:\ProgramData\chocolatey\logs\ccm-service.log" -Tail 20
 
 
 
-choco list --local-only | Select-String "chocolatey-management"
-choco list chocolatey-management-database --source="https://licensedpackages.chocolatey.org/api/v2/" --all-versions
-
+choco upgrade chocolatey-management-database --version 0.18.0 -y --source="E:\packages\temp\download" `
+  --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
