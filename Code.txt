@@ -1,3 +1,5 @@
+notepad C:\tools\chocolatey-management-web\web.config
+
 # Stop everything first
 Stop-Website -Name ChocolateyCentralManagement -ErrorAction SilentlyContinue
 Stop-Service chocolatey-central-management -ErrorAction SilentlyContinue
