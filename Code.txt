@@ -1,5 +1,15 @@
-$cert = Get-ChildItem "Cert:\LocalMachine\My" | Where-Object { $_.Subject -eq "CN=localhost" }
-$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
-$store.Open("ReadWrite")
-$store.Add($cert)
-$store.Close()
+PS C:\ProgramData\chocolatey> $cert = Get-ChildItem "Cert:\LocalMachine\My" | Where-Object { $_.Subject -eq "CN=localhost" }
+>> $store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+>> $store.Open("ReadWrite")
+>> $store.Add($cert)
+>> $store.Close()
+Cannot convert argument "certificate", with value: "System.Object[]", for "Add" to type
+"System.Security.Cryptography.X509Certificates.X509Certificate2": "Cannot convert the "System.Object[]" value of type
+"System.Object[]" to type "System.Security.Cryptography.X509Certificates.X509Certificate2"."
+At line:4 char:1
++ $store.Add($cert)
++ ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodException
+    + FullyQualifiedErrorId : MethodArgumentConversionInvalidCastArgument
+
+PS C:\ProgramData\chocolatey>
