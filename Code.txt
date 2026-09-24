@@ -57,7 +57,26 @@ sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
 
 
 
-secedit /export /cfg C:\Windows\Temp\secpol.cfg
-Select-String -Path C:\Windows\Temp\secpol.cfg -Pattern "SeServiceLogonRight"
+$cfgPath = "C:\Windows\Temp\secpol.cfg"
+
+$content = Get-Content $cfgPath
+$lineIndex = ($content | Select-String "^SeServiceLogonRight").LineNumber - 1
+
+if ($lineIndex -ge 0) {
+    $currentLine = $content[$lineIndex]
+    Write-Host "Current: $currentLine"
+
+    if ($currentLine -notmatch "S-1-5-80-0") {
+        $content[$lineIndex] = $currentLine.TrimEnd() + ",*S-1-5-80-0"
+        Set-Content -Path $cfgPath -Value $content
+        secedit /configure /db C:\Windows\Temp\secedit.sdb /cfg $cfgPath /areas USER_RIGHTS
+        Write-Host "Applied. Starting SQL Server..."
+        Start-Service "MSSQL`$SQLEXPRESS"
+    } else {
+        Write-Host "NT SERVICE\ALL SERVICES is already present -- this isn't the cause, need to look elsewhere."
+    }
+} else {
+    Write-Warning "SeServiceLogonRight line not found at all in the export -- different situation, don't guess further, check secpol.msc manually."
+}
 
 
