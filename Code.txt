@@ -1,12 +1,22 @@
-# Generate a self-signed cert valid for localhost
-$cert = New-SelfSignedCertificate -DnsName "localhost" -CertStoreLocation "cert:\LocalMachine\My" -NotAfter (Get-Date).AddYears(2)
-$thumbprint = $cert.Thumbprint
-Write-Host "Thumbprint: $thumbprint"
+# Bypass cert validation for this session (self-signed cert, expected for now)
+add-type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class TrustAllCertsPolicy : ICertificatePolicy {
+    public bool CheckValidationResult(
+        ServicePoint srvPoint, X509Certificate certificate,
+        WebRequest request, int certificateProblem) {
+        return true;
+    }
+}
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-# Bind it to port 443 for the CCM site in IIS
-Import-Module WebAdministration
-New-WebBinding -Name "ChocolateyCentralManagement" -Protocol https -Port 443 -IPAddress "*"
+# 5.1 also doesn't have -SkipHttpErrorCheck, so catch the exception instead
+try {
+    $response = Invoke-WebRequest -Uri "https://localhost" -UseBasicParsing
+    $response.StatusCode
+} catch {
+    $_.Exception.Response.StatusCode.value__
+}
 
-# Assign the cert to that binding via netsh (IIS's binding cmdlets don't set the cert itself)
-$appId = "{00000000-0000-0000-0000-000000000000}"
-netsh http add sslcert ipport=0.0.0.0:443 certhash=$thumbprint appid=$appId
