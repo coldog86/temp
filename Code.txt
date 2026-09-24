@@ -28,3 +28,28 @@ choco install dotnet-10.0-runtime
 choco install dotnet-10.0-aspnetruntime
 
 choco install chocolatey-management-database -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
+
+$hostName = [System.Net.Dns]::GetHostName()
+$domainName = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
+$fqdnUser = "$hostName\ChocolateyLocalAdmin"
+
+$grantSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = '$fqdnUser')
+    CREATE LOGIN [$fqdnUser] FROM WINDOWS;
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
+    CREATE LOGIN [IIS APPPOOL\ChocolateyCentralManagement] FROM WINDOWS;
+
+USE ChocolateyManagement;
+
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$fqdnUser')
+    CREATE USER [$fqdnUser] FOR LOGIN [$fqdnUser];
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
+    CREATE USER [IIS APPPOOL\ChocolateyCentralManagement] FOR LOGIN [IIS APPPOOL\ChocolateyCentralManagement];
+
+ALTER ROLE db_datareader ADD MEMBER [$fqdnUser];
+ALTER ROLE db_datawriter ADD MEMBER [$fqdnUser];
+ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
+ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
+"@
+
+sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
