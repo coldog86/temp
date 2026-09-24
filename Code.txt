@@ -1,1 +1,5 @@
-Get-ChildItem "C:\tools\chocolatey-management-web\App_Data\Logs\stdout*" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 50
+PS C:\ProgramData\chocolatey> Get-ChildItem "C:\tools\chocolatey-management-web\App_Data\Logs\stdout*" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 50
+Hosting environment: Production
+Content root path: C:\tools\chocolatey-management-web
+Now listening on: http://*:80/
+Application started. Press Ctrl+C to shut down.
