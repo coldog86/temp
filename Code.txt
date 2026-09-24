@@ -13,3 +13,13 @@ At line:4 char:1
     + FullyQualifiedErrorId : MethodArgumentConversionInvalidCastArgument
 
 PS C:\ProgramData\chocolatey>
+
+
+Get-ChildItem "Cert:\LocalMachine\My" | Where-Object { $_.Subject -eq "CN=localhost" } | Select-Object Subject, Thumbprint, NotAfter
+$thumbprint = "<the exact thumbprint you bound to port 443>"
+$cert = Get-ChildItem "Cert:\LocalMachine\My" | Where-Object { $_.Thumbprint -eq $thumbprint }
+
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
