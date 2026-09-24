@@ -58,12 +58,23 @@ sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
 
 
 
+PS C:\ProgramData\chocolatey> Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server" | Where-Object { $_.PSChildName -like "MSSQL*.SQLEXPRESS" } | ForEach-Object {
+>>     $paramsPath = Join-Path $_.PSPath "MSSQLServer\Parameters"
+>>     if (Test-Path $paramsPath) { Get-ItemProperty $paramsPath }
+>> }
 
-Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server" | Where-Object { $_.PSChildName -like "MSSQL*.SQLEXPRESS" } | ForEach-Object {
-    $paramsPath = Join-Path $_.PSPath "MSSQLServer\Parameters"
-    if (Test-Path $paramsPath) { Get-ItemProperty $paramsPath }
-}
+SQLArg0      : -dC:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\master.mdf
+SQLArg1      : -eC:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Log\ERRORLOG
+SQLArg2      : -lC:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\mastlog.ldf
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL
+               Server\MSSQL16.SQLEXPRESS\MSSQLServer\Parameters
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL
+               Server\MSSQL16.SQLEXPRESS\MSSQLServer
+PSChildName  : Parameters
+PSProvider   : Microsoft.PowerShell.Core\Registry
 
 
+
+PS C:\ProgramData\chocolatey>
 
 
