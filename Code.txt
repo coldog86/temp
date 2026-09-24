@@ -1,1 +1,149 @@
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'DNPIAPP301\ChocolateyLocalAdmin') BEGIN CREATE LOGIN [DNPIAPP301\ChocolateyLocalAdmin] FROM WINDOWS; END USE ChocolateyManagement; IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'DNPIAPP301\ChocolateyLocalAdmin') BEGIN CREATE USER [DNPIAPP301\ChocolateyLocalAdmin] FOR LOGIN [DNPIAPP301\ChocolateyLocalAdmin]; END ALTER ROLE db_datareader ADD MEMBER [DNPIAPP301\ChocolateyLocalAdmin]; ALTER ROLE db_datawriter ADD MEMBER [DNPIAPP301\ChocolateyLocalAdmin];"
+2026-09-24 10:34:37,943 3  [INFO ] - Checking for computer facts messages to process...
+2026-09-24 10:34:37,943 3  [WARN ] - Directory 'C:\ProgramData\chocolatey\services\computer_facts_messages_processing' does not exist.
+2026-09-24 10:34:37,944 3  [WARN ] - Directory 'C:\ProgramData\chocolatey\services\computer_facts_messages' does not exist.
+2026-09-24 10:34:37,944 3  [INFO ] - Found 0 computer facts messages to process...
+2026-09-24 10:34:37,944 3  [INFO ] - Finished processing computer facts messages.
+2026-09-24 10:34:37,983 3  [WARN ] - chocolatey-central-management had an error on DNPIAPP301 (with user ChocolateyLocalAdmin):
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'HasOutdatedSoftware'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at ChocolateySoftware.ChocolateyManagement.Deployments.DeploymentStepComputersAppService.GetAllReadyDeploymentStepComputers()
+   at Abp.Authorization.AuthorizationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Runtime.Validation.Interception.ValidationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Nito.AsyncEx.AsyncContext.<>c__DisplayClass16_0`1.<Run>b__0(Task`1 t)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Nito.AsyncEx.AsyncContext.Run[TResult](Func`1 action)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=zbwuJ1$K0$p0z(ILockedCacheService #=zpZAzSi0=)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=z8fzWu3EKf7Ru(UpdateCacheMessage #=zHIsxCEs=)
+ClientConnectionId:63747d31-4159-4b69-8460-503a71a5f1bc
+Error Number:207,State:1,Class:16
+2026-09-24 10:35:07,709 3  [INFO ] - Checking for Deployment Step result messages to process...
+2026-09-24 10:35:07,710 3  [INFO ] - Finished processing Deployment Step result messages for 0 computers.
+2026-09-24 10:35:07,750 3  [WARN ] - chocolatey-central-management had an error on DNPIAPP301 (with user ChocolateyLocalAdmin):
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'HasOutdatedSoftware'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at ChocolateySoftware.ChocolateyManagement.Deployments.DeploymentStepComputersAppService.GetAllReadyDeploymentStepComputers()
+   at Abp.Authorization.AuthorizationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Runtime.Validation.Interception.ValidationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Nito.AsyncEx.AsyncContext.<>c__DisplayClass16_0`1.<Run>b__0(Task`1 t)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Nito.AsyncEx.AsyncContext.Run[TResult](Func`1 action)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=zbwuJ1$K0$p0z(ILockedCacheService #=zpZAzSi0=)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=z8fzWu3EKf7Ru(UpdateCacheMessage #=zHIsxCEs=)
+ClientConnectionId:63747d31-4159-4b69-8460-503a71a5f1bc
+Error Number:207,State:1,Class:16
+2026-09-24 10:35:07,788 3  [INFO ] - Checking for Deployment Plans that are scheduled to start.
+2026-09-24 10:35:07,794 3  [INFO ] - Check for scheduled Deployment Plans completed, no plans are scheduled to be started.
+2026-09-24 10:35:07,865 3  [INFO ] - Checking for computer information messages to process...
+2026-09-24 10:35:07,866 3  [INFO ] - Found 0 computer information messages to process...
+2026-09-24 10:35:07,866 3  [INFO ] - Finished processing computer information messages.
+2026-09-24 10:35:07,919 3  [WARN ] - chocolatey-central-management had an error on DNPIAPP301 (with user ChocolateyLocalAdmin):
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'HasOutdatedSoftware'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at ChocolateySoftware.ChocolateyManagement.Deployments.DeploymentStepComputersAppService.GetAllReadyDeploymentStepComputers()
+   at Abp.Authorization.AuthorizationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Runtime.Validation.Interception.ValidationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Nito.AsyncEx.AsyncContext.<>c__DisplayClass16_0`1.<Run>b__0(Task`1 t)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Nito.AsyncEx.AsyncContext.Run[TResult](Func`1 action)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=zbwuJ1$K0$p0z(ILockedCacheService #=zpZAzSi0=)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=z8fzWu3EKf7Ru(UpdateCacheMessage #=zHIsxCEs=)
+ClientConnectionId:63747d31-4159-4b69-8460-503a71a5f1bc
+Error Number:207,State:1,Class:16
+2026-09-24 10:35:07,949 3  [INFO ] - Checking for computer facts messages to process...
+2026-09-24 10:35:07,950 3  [WARN ] - Directory 'C:\ProgramData\chocolatey\services\computer_facts_messages_processing' does not exist.
+2026-09-24 10:35:07,950 3  [WARN ] - Directory 'C:\ProgramData\chocolatey\services\computer_facts_messages' does not exist.
+2026-09-24 10:35:07,950 3  [INFO ] - Found 0 computer facts messages to process...
+2026-09-24 10:35:07,951 3  [INFO ] - Finished processing computer facts messages.
+2026-09-24 10:35:07,987 3  [WARN ] - chocolatey-central-management had an error on DNPIAPP301 (with user ChocolateyLocalAdmin):
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'HasOutdatedSoftware'.
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+   at ChocolateySoftware.ChocolateyManagement.Deployments.DeploymentStepComputersAppService.GetAllReadyDeploymentStepComputers()
+   at Abp.Authorization.AuthorizationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Auditing.AuditingInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Abp.Runtime.Validation.Interception.ValidationInterceptor.InternalInterceptAsynchronous[TResult](IInvocation invocation)
+   at Nito.AsyncEx.AsyncContext.<>c__DisplayClass16_0`1.<Run>b__0(Task`1 t)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Nito.AsyncEx.AsyncContext.Run[TResult](Func`1 action)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=zbwuJ1$K0$p0z(ILockedCacheService #=zpZAzSi0=)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateMemoryCacheTask.#=z8fzWu3EKf7Ru(UpdateCacheMessage #=zHIsxCEs=)
+ClientConnectionId:63747d31-4159-4b69-8460-503a71a5f1bc
+Error Number:207,State:1,Class:16
