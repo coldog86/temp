@@ -78,6 +78,58 @@ PSProvider   : Microsoft.PowerShell.Core\Registry
 Get-EventLog -LogName Application -Source "MSSQL`$SQLEXPRESS" -Newest 10 | Format-List
 
 
-Get-ChildItem "C:\Program Files\Microsoft SQL Server\MSSQL*.SQLEXPRESS\MSSQL\Log\ERRORLOG" -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending | Select-Object -First 1 |
-    Get-Content -Tail 50
+PS C:\ProgramData\chocolatey>
+>> Get-ChildItem "C:\Program Files\Microsoft SQL Server\MSSQL*.SQLEXPRESS\MSSQL\Log\ERRORLOG" -ErrorAction SilentlyContinue |
+>>     Sort-Object LastWriteTime -Descending | Select-Object -First 1 |
+>>     Get-Content -Tail 50
+2026-09-24 10:05:16.72 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:05:16.72 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:05:26.74 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:05:26.74 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:05:26.74 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:05:26.74 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:05:36.75 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:05:36.75 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:05:46.73 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:05:46.73 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:06:13.61 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:06:13.61 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:06:23.63 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:06:23.63 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:06:43.80 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:06:43.80 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:06:53.82 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:06:53.82 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:07:23.83 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:07:23.83 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:07:33.85 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:07:33.85 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:07:53.91 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:07:53.91 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:08:03.93 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:08:03.93 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:08:53.96 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:08:53.96 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:09:03.97 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 10:09:03.97 Logon       Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 10:35:26.74 spid51      XE session 'telemetry_xevents' stopping.
+2026-09-24 10:35:26.75 spid51      XE session 'telemetry_xevents' started.
+2026-09-24 11:01:08.03 spid33s     RBPEX::NotifyFileShutdown: Called for database ID: [5], file Id [0]
+2026-09-24 11:01:49.89 spid57      Starting up database 'ChocolateyManagement'.
+2026-09-24 11:01:49.89 spid57      RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [5]
+2026-09-24 11:01:49.89 spid57      RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 5.
+2026-09-24 11:01:49.92 spid57      Parallel redo is started for database 'ChocolateyManagement' with worker pool size [1].
+2026-09-24 11:01:49.93 spid57      Parallel redo is shutdown for database 'ChocolateyManagement' with worker pool size [1].
+2026-09-24 11:01:49.95 spid57      Setting database option SINGLE_USER to ON for database 'ChocolateyManagement'.
+2026-09-24 11:01:49.96 spid57      RBPEX::NotifyDrop: Called for database ID: [5], file Id [0]
+2026-09-24 11:01:49.98 spid57      RBPEX::NotifyFileShutdown: Called for database ID: [5], file Id [0]
+2026-09-24 11:03:22.94 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 11:03:22.94 Logon       Login failed for user 'MGT\CM3745_x'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 11:03:32.97 Logon       Error: 18456, Severity: 14, State: 38.
+2026-09-24 11:03:32.97 Logon       Login failed for user 'MGT\CM3745_x'. Reason: Failed to open the explicitly specified database 'ChocolateyManagement'. [CLIENT: <local machine>]
+2026-09-24 11:09:56.15 spid10s     SQL Server is terminating in response to a 'stop' request from Service Control Manager. This is an informational message only. No user action is required.
+2026-09-24 11:09:56.15 spid10s     .NET Framework runtime has been stopped.
+2026-09-24 11:09:56.16 spid10s     RBPEX::NotifyFileShutdown: Called for database ID: [4], file Id [0]
+2026-09-24 11:09:56.17 spid10s     RBPEX::NotifyFileShutdown: Called for database ID: [3], file Id [0]
+2026-09-24 11:09:56.19 spid10s     SQL Trace was stopped due to server shutdown. Trace ID = '1'. This is an informational message only; no user action is required.
+PS C:\ProgramData\chocolatey>
