@@ -1,5 +1,1 @@
-Stop-Website -Name ChocolateyCentralManagement
-Restart-WebAppPool -Name ChocolateyCentralManagement
-Start-Website -Name ChocolateyCentralManagement
-
-Invoke-WebRequest -Uri "http://localhost" -UseBasicParsing -SkipHttpErrorCheck | Select-Object StatusCode
+Get-ChildItem "C:\tools\chocolatey-management-web\App_Data\Logs\stdout*" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 50
