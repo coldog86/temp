@@ -78,3 +78,6 @@ PSProvider   : Microsoft.PowerShell.Core\Registry
 Get-EventLog -LogName Application -Source "MSSQL`$SQLEXPRESS" -Newest 10 | Format-List
 
 
+Get-ChildItem "C:\Program Files\Microsoft SQL Server\MSSQL*.SQLEXPRESS\MSSQL\Log\ERRORLOG" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1 |
+    Get-Content -Tail 50
