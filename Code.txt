@@ -1,5 +1,4 @@
 notepad C:\tools\chocolatey-management-web\appsettings.json
 
-{"ConnectionStrings":{"Default":"secure-7Ixrir6bZlXra8upxnclLbaJeuE7XxeFIh0oyOx0WT4ZJ4j1Ccay/enHj243zXZNhvwA7ghyS716+Ssr65PZs+tN0mgnDFvdwyqig7/fQexlyQT3ar1GZeU1Po2nzXZjUwVVRvr4Pi5uftygLO2rjw=="},"App":{"WebSiteRootAddress":"secure-nYbhqheGbmkXCwl9ciR1Xoh3sxBhJhMwoyQ9Y/yTB1Aylrd4cIeyfzp7AFDf2vel"},"Antiforgery": {
-    "CookieSecurePolicy": "None"
-}}
+Get-Content "C:\tools\chocolatey-management-web\App_Data\Logs\ccm-website.log" -Tail 20
+
