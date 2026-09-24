@@ -63,50 +63,7 @@ sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-PS C:\ProgramData\chocolatey> choco install chocolatey-management-database -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
-Chocolatey v2.6.0 Business
-Installing the following packages:
-chocolatey-management-database
-By installing, you accept licenses for the packages.
-Downloading package from source 'http://dpriapp310.mgt.dis.gov.au:8082/artifactory/api/nuget/Choco-Local'
-Progress: Downloading chocolatey-management-database 0.13.1... 100%
-
-chocolatey-management-database v0.13.1 (forced)
-chocolatey-management-database package files install completed. Performing other installation steps.
-Fetching existing appsettings.json file...
-New database connection string provided. Updating the value in the appsettings.json file...
-WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
-The following test will validate that the user installing the package has access to the
-database, but it won't validate that the end user running the Chocolatey Central
-Management Service or Website Application Pool has access to the database.  This should
-be validated separately.
-WARNING: The provided connection string uses either Trusted_Connection or Integrated Security.
-The following test will validate that the user installing the package has access to the
-database, but it won't validate that the end user running the Chocolatey Central
-Management Service or Website Application Pool has access to the database.  This should
-be validated separately.
-Exception calling "Open" with "0" argument(s): "Cannot open database "ChocolateyManagement" requested by the login. The login failed.
-Login failed for user 'MGT\CM3745_x'."
-ERROR: Unable to connect to database, please verify connection string information.
-The install of chocolatey-management-database was NOT successful.
-Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-database\tools\chocolateyInstall.ps1'.
- See log for details.
-
-Chocolatey installed 0/1 packages. 1 packages failed.
- See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
-
-Failures
- - chocolatey-management-database (exited -1) - Error while running 'C:\ProgramData\chocolatey\lib\chocolatey-management-database\tools\chocolateyInstall.ps1'.
- See log for details.
+Stop-Service "MSSQL`$SQLEXPRESS" -Force
+sqlcmd -S "localhost\SQLEXPRESS" -E -Q "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'MGT\CM3745_x') CREATE LOGIN [MGT\CM3745_x] FROM WINDOWS; ALTER SERVER ROLE sysadmin ADD MEMBER [MGT\CM3745_x];"
+Restart-Service "MSSQL`$SQLEXPRESS"
+sqlcmd -S "localhost\SQLEXPRESS" -E -Q "SELECT IS_SRVROLEMEMBER('sysadmin', 'MGT\CM3745_x') AS IsSysadmin;"
