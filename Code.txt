@@ -65,3 +65,11 @@ Get-Content "C:\ProgramData\chocolatey\logs\ccm-service.log" -Tail 20
 
 choco upgrade chocolatey-management-database --version 0.18.0 -y --source="E:\packages\temp\download" `
   --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
+
+sqlcmd -S "localhost\SQLEXPRESS" -E -Q "SELECT TOP 5 MigrationId FROM ChocolateyManagement.dbo.__EFMigrationsHistory ORDER BY MigrationId DESC;"
+
+choco install chocolatey-management-web -y --force --source="$src" `
+  --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
+
+Start-Sleep -Seconds 5
+Invoke-WebRequest -Uri "http://localhost" -UseBasicParsing | Select-Object StatusCode
