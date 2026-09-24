@@ -75,6 +75,6 @@ PSProvider   : Microsoft.PowerShell.Core\Registry
 
 
 
-PS C:\ProgramData\chocolatey>
+Get-EventLog -LogName Application -Source "MSSQL`$SQLEXPRESS" -Newest 10 | Format-List
 
 
