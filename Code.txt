@@ -19,3 +19,12 @@ Get-ChildItem "C:\ProgramData\chocolatey\lib" -Filter "chocolatey-management-*" 
 Import-Module WebAdministration -ErrorAction SilentlyContinue
 Remove-Website -Name "ChocolateyCentralManagement" -ErrorAction SilentlyContinue
 Remove-WebAppPool -Name "ChocolateyCentralManagement" -ErrorAction SilentlyContinue
+
+
+choco install IIS-WebServer
+choco install IIS-ApplicationInit
+choco install dotnet-aspnetcoremodule-v2 
+choco install dotnet-10.0-runtime
+choco install dotnet-10.0-aspnetruntime
+
+choco install chocolatey-management-database -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
