@@ -1,22 +1,5 @@
-# Bypass cert validation for this session (self-signed cert, expected for now)
-add-type @"
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(
-        ServicePoint srvPoint, X509Certificate certificate,
-        WebRequest request, int certificateProblem) {
-        return true;
-    }
-}
-"@
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-# 5.1 also doesn't have -SkipHttpErrorCheck, so catch the exception instead
-try {
-    $response = Invoke-WebRequest -Uri "https://localhost" -UseBasicParsing
-    $response.StatusCode
-} catch {
-    $_.Exception.Response.StatusCode.value__
-}
-
+$cert = Get-ChildItem "Cert:\LocalMachine\My" | Where-Object { $_.Subject -eq "CN=localhost" }
+$store = New-Object System.Security.Cryptography.X509Certificates.X509Store("Root", "LocalMachine")
+$store.Open("ReadWrite")
+$store.Add($cert)
+$store.Close()
