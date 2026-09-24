@@ -57,26 +57,66 @@ sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
 
 
 
-$cfgPath = "C:\Windows\Temp\secpol.cfg"
 
-$content = Get-Content $cfgPath
-$lineIndex = ($content | Select-String "^SeServiceLogonRight").LineNumber - 1
+PS C:\ProgramData\chocolatey>
+>> choco install chocolatey-management-database -y --force --package-parameters="'/ConnectionString:Server=localhost\SQLEXPRESS;Database=ChocolateyManagement;Trusted_Connection=True;'"
+Chocolatey v2.6.0 Business
+Installing the following packages:
+chocolatey-management-database
+By installing, you accept licenses for the packages.
+Downloading package from source 'http://dpriapp310.mgt.dis.gov.au:8082/artifactory/api/nuget/Choco-Local'
+Progress: Downloading chocolatey-management-database 0.13.1... 100%
 
-if ($lineIndex -ge 0) {
-    $currentLine = $content[$lineIndex]
-    Write-Host "Current: $currentLine"
+chocolatey-management-database v0.13.1 (forced)
+chocolatey-management-database package files install completed. Performing other installation steps.
+No pre-existing appsettings.json found.
+Creating appsettings.json file...
+appsettings.json file created at C:\ProgramData\chocolatey\lib\chocolatey-management-database\tools\app
+0
+ The install of chocolatey-management-database was successful.
+  Software install location not explicitly set, it could be in package or
+  default install location of installer.
 
-    if ($currentLine -notmatch "S-1-5-80-0") {
-        $content[$lineIndex] = $currentLine.TrimEnd() + ",*S-1-5-80-0"
-        Set-Content -Path $cfgPath -Value $content
-        secedit /configure /db C:\Windows\Temp\secedit.sdb /cfg $cfgPath /areas USER_RIGHTS
-        Write-Host "Applied. Starting SQL Server..."
-        Start-Service "MSSQL`$SQLEXPRESS"
-    } else {
-        Write-Host "NT SERVICE\ALL SERVICES is already present -- this isn't the cause, need to look elsewhere."
-    }
-} else {
-    Write-Warning "SeServiceLogonRight line not found at all in the export -- different situation, don't guess further, check secpol.msc manually."
-}
+Chocolatey installed 1/1 packages.
+ See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
+PS C:\ProgramData\chocolatey>
+>> $fqdnUser = "$hostName\ChocolateyLocalAdmin"
+>> $domainName = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
+>> $hostName = [System.Net.Dns]::GetHostName()
+>>
+PS C:\ProgramData\chocolatey>
+>> $grantSql = @"
+>> IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = '$fqdnUser')
+>>     CREATE LOGIN [$fqdnUser] FROM WINDOWS;
+>> IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
+>>     CREATE LOGIN [IIS APPPOOL\ChocolateyCentralManagement] FROM WINDOWS;
+>>
+>> USE ChocolateyManagement;
+>>
+>> IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = '$fqdnUser')
+>>     CREATE USER [$fqdnUser] FOR LOGIN [$fqdnUser];
+>> IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'IIS APPPOOL\ChocolateyCentralManagement')
+>>     CREATE USER [IIS APPPOOL\ChocolateyCentralManagement] FOR LOGIN [IIS APPPOOL\ChocolateyCentralManagement];
+>>
+>> ALTER ROLE db_datareader ADD MEMBER [$fqdnUser];
+>> ALTER ROLE db_datawriter ADD MEMBER [$fqdnUser];
+>> ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
+>> ALTER ROLE db_datawriter ADD MEMBER [IIS APPPOOL\ChocolateyCentralManagement];
+>> "@
+>>
+>> sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
+>>
+>>
+>>
+Msg 15401, Level 16, State 1, Server DNPIAPP301\SQLEXPRESS, Line 2
+Windows NT user or group '\ChocolateyLocalAdmin' not found. Check the name again.
+Changed database context to 'ChocolateyManagement'.
+Msg 15401, Level 16, State 1, Server DNPIAPP301\SQLEXPRESS, Line 9
+Windows NT user or group '\ChocolateyLocalAdmin' not found. Check the name again.
+Msg 15151, Level 16, State 1, Server DNPIAPP301\SQLEXPRESS, Line 13
+Cannot add the principal '\ChocolateyLocalAdmin', because it does not exist or you do not have permission.
+Msg 15151, Level 16, State 1, Server DNPIAPP301\SQLEXPRESS, Line 14
+Cannot add the principal '\ChocolateyLocalAdmin', because it does not exist or you do not have permission.
+PS C:\ProgramData\chocolatey>
 
 
