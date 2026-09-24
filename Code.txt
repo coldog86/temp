@@ -63,7 +63,31 @@ sqlcmd -S "localhost\SQLEXPRESS" -E -Q $grantSql
 
 
 
-Stop-Service "MSSQL`$SQLEXPRESS" -Force
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'MGT\CM3745_x') CREATE LOGIN [MGT\CM3745_x] FROM WINDOWS; ALTER SERVER ROLE sysadmin ADD MEMBER [MGT\CM3745_x];"
-Restart-Service "MSSQL`$SQLEXPRESS"
-sqlcmd -S "localhost\SQLEXPRESS" -E -Q "SELECT IS_SRVROLEMEMBER('sysadmin', 'MGT\CM3745_x') AS IsSysadmin;"
+PS C:\ProgramData\chocolatey> sqlcmd -S "localhost\SQLEXPRESS" -E -Q "SELECT IS_SRVROLEMEMBER('sysadmin', 'MGT\CM3745_x') AS IsSysadmin;"
+IsSysadmin
+-----------
+          1
+
+(1 rows affected)
+PS C:\ProgramData\chocolatey> Stop-Service "MSSQL`$SQLEXPRESS" -Force
+PS C:\ProgramData\chocolatey> sqlcmd -S "localhost\SQLEXPRESS" -E -Q "IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'MGT\CM3745_x') CREATE LOGIN [MGT\CM3745_x] FROM WINDOWS; ALTER SERVER ROLE sysadmin ADD MEMBER [MGT\CM3745_x];"
+Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : Named Pipes Provider: Could not open a connection to SQL Server [2]. .
+Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : Login timeout expired.
+Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : A network-related or instance-specific error has occurred while establishing a connection to SQL Server. Server is not found or not accessible. Check if instance name is correct and if SQL Server is configured to allow remote connections. For more information see SQL Server Books Online..
+PS C:\ProgramData\chocolatey> Restart-Service "MSSQL`$SQLEXPRESS"
+Restart-Service : Service 'SQL Server (SQLEXPRESS) (MSSQL$SQLEXPRESS)' cannot be started due to the following error:
+Cannot start service MSSQL$SQLEXPRESS on computer '.'.
+At line:1 char:1
++ Restart-Service "MSSQL`$SQLEXPRESS"
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OpenError: (System.ServiceProcess.ServiceController:ServiceController) [Restart-Service]
+   , ServiceCommandException
+    + FullyQualifiedErrorId : CouldNotStartService,Microsoft.PowerShell.Commands.RestartServiceCommand
+
+PS C:\ProgramData\chocolatey>
+
+
+
+
+
+
