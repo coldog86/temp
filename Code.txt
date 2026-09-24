@@ -2,3 +2,27 @@ notepad C:\tools\chocolatey-management-web\appsettings.json
 
 Get-Content "C:\tools\chocolatey-management-web\App_Data\Logs\ccm-website.log" -Tail 20
 
+PS C:\ProgramData\chocolatey> Get-Content "C:\tools\chocolatey-management-web\App_Data\Logs\ccm-website.log" -Tail 20
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at ChocolateySoftware.ChocolateyManagement.Web.Middleware.ContentSecurityPolicyMiddleware.#=zXTGh2LVoRjgaThMBFg==.MoveNext()
+--- End of stack trace from previous location ---
+   at ChocolateySoftware.ChocolateyManagement.Web.Middleware.TimeZoneCorrectionMiddleware.#=zXTGh2LVoRjgaThMBFg==.MoveNext()
+--- End of stack trace from previous location ---
+   at ChocolateySoftware.ChocolateyManagement.Web.Middleware.ForcedRedirectionMiddleware.#=ztYFbb8_2CNCgko6RmQ==.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Localization.RequestLocalizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+2026-09-24 12:42:01,204 12 [INFO ] - Request starting HTTP/1.1 GET http://localhost/AbpScripts/GetScripts?v=639258145211844426 - - -
+2026-09-24 12:42:01,205 10 [INFO ] - Request finished HTTP/1.1 GET http://localhost/Account/Login - 500 - text/html;+charset=utf-8 415.1433ms
+2026-09-24 12:42:01,217 12 [INFO ] - Executing endpoint 'Abp.AspNetCore.Mvc.Controllers.AbpScriptsController.GetScripts (Abp.AspNetCore)'
+2026-09-24 12:42:01,223 12 [INFO ] - Route matched with {action = "GetScripts", controller = "AbpScripts", area = ""}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult] GetScripts(System.String, Boolean) on controller Abp.AspNetCore.Mvc.Controllers.AbpScriptsController (Abp.AspNetCore).
+2026-09-24 12:42:01,411 8  [INFO ] - Executing ContentResult with HTTP Response ContentType of application/x-javascript; charset=utf-8
+2026-09-24 12:42:01,414 8  [INFO ] - Executed action Abp.AspNetCore.Mvc.Controllers.AbpScriptsController.GetScripts (Abp.AspNetCore) in 189.4985ms
+2026-09-24 12:42:01,414 8  [INFO ] - Executed endpoint 'Abp.AspNetCore.Mvc.Controllers.AbpScriptsController.GetScripts (Abp.AspNetCore)'
+2026-09-24 12:42:01,416 12 [INFO ] - Request finished HTTP/1.1 GET http://localhost/AbpScripts/GetScripts?v=639258145211844426 - 200 171275 application/x-javascript;+charset=utf-8 211.7583ms
+PS C:\ProgramData\chocolatey>
+
+
