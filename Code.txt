@@ -1,1 +1,97 @@
-choco install chocolatey-central-management 
+2026-09-24 10:06:23,646 11 [ERROR] - An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
+2026-09-24 10:06:23,651 11 [WARN ] - chocolatey-central-management had an error on DNPIAPP301 (with user ChocolateyLocalAdmin):
+System.InvalidOperationException: An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Cannot open database "ChocolateyManagement" requested by the login. The login failed.
+Login failed for user 'DNPIAPP301\ChocolateyLocalAdmin'.
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.CompleteLogin(Boolean enlistOK)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.AttemptOneLogin(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, TimeoutTimer timeout, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.LoginNoFailover(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString connectionOptions, SqlCredential credential, TimeoutTimer timeout)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.OpenLoginEnlist(TimeoutTimer timeout, SqlConnectionString connectionOptions, SqlCredential credential, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds..ctor(DbConnectionPoolIdentity identity, SqlConnectionString connectionOptions, SqlCredential credential, Object providerInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString userConnectionOptions, SessionData reconnectSessionData, Boolean applyTransientFaultHandling, String accessToken, IDbConnectionPool pool, Func`3 accessTokenCallback)
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.CreateConnection(DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionPoolGroupProviderInfo poolGroupProviderInfo, IDbConnectionPool pool, DbConnection owningConnection, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.CreatePooledConnection(IDbConnectionPool pool, DbConnection owningObject, DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 taskCompletionSource, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.BeginTransaction(IsolationLevel isolationLevel)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.<>c__DisplayClass28_0.<BeginTransaction>b__0(DatabaseFacade database)
+   at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.<>c__DisplayClass12_0`2.<Execute>b__0(DbContext _, TState s)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+ClientConnectionId:67504ef7-9d59-4702-9518-6ebf6cc84847
+Error Number:4060,State:1,Class:11
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.ExecutionStrategyExtensions.Execute[TState,TResult](IExecutionStrategy strategy, TState state, Func`2 operation, Func`2 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.BeginTransaction(DatabaseFacade databaseFacade, IsolationLevel isolationLevel)
+   at Abp.EntityFrameworkCore.Uow.DbContextEfCoreTransactionStrategy.CreateDbContext[TDbContext](String connectionString, IDbContextResolver dbContextResolver)
+   at Abp.EntityFrameworkCore.Uow.EfCoreUnitOfWork.GetOrCreateDbContext[TDbContext](Nullable`1 multiTenancySide, String name)
+   at Abp.EntityFrameworkCore.Uow.UnitOfWorkExtensions.GetDbContext[TDbContext](IActiveUnitOfWork unitOfWork, Nullable`1 multiTenancySide, String name)
+   at Abp.EntityFrameworkCore.Uow.UnitOfWorkDbContextProvider`1.GetDbContext(Nullable`1 multiTenancySide)
+   at Abp.EntityFrameworkCore.Repositories.EfCoreRepositoryBase`3.GetContext()
+   at Abp.EntityFrameworkCore.Repositories.EfCoreRepositoryBase`3.<GetQueryable>b__7_0(Type key)
+   at System.Collections.Concurrent.ConcurrentDictionary`2.GetOrAdd(TKey key, Func`2 valueFactory)
+   at Abp.EntityFrameworkCore.Repositories.EfCoreRepositoryBase`3.GetQueryable()
+   at Abp.EntityFrameworkCore.Repositories.EfCoreRepositoryBase`3.GetAll()
+   at Abp.Domain.Repositories.AbpRepositoryBase`2.FirstOrDefault(TPrimaryKey id)
+   at Castle.Proxies.Invocations.IRepository`2_FirstOrDefault.InvokeMethodOnTarget()
+   at Castle.DynamicProxy.AbstractInvocation.Proceed()
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InterceptSynchronous(IInvocation invocation)
+   at Castle.DynamicProxy.AsyncDeterminationInterceptor.Intercept(IInvocation invocation)
+   at Castle.DynamicProxy.AbstractInvocation.Proceed()
+   at Castle.Proxies.IRepository`1Proxy.FirstOrDefault(Int32 id)
+   at Abp.MultiTenancy.TenantCache`2.<>c__DisplayClass13_0.<GetTenantOrNull>b__0()
+   at Abp.Domain.Uow.UnitOfWorkManagerExtensions.WithUnitOfWork[TResult](IUnitOfWorkManager manager, Func`1 action, UnitOfWorkOptions options)
+   at Abp.MultiTenancy.TenantCache`2.GetTenantOrNull(Int32 tenantId)
+   at Abp.MultiTenancy.TenantCache`2.<>c__DisplayClass7_0.<GetOrNull>b__0()
+   at Abp.Runtime.Caching.TypedCacheExtensions.<>c__DisplayClass0_0`2.<Get>b__0(TKey k)
+   at Abp.Runtime.Caching.TypedCacheWrapper`2.<>c__DisplayClass19_0.<Get>b__0(String k)
+   at Abp.Runtime.Caching.AbpCacheBase`2.Get(TKey key, Func`2 factory)
+   at Abp.Runtime.Caching.TypedCacheWrapper`2.Get(TKey key, Func`2 factory)
+   at Abp.Runtime.Caching.TypedCacheExtensions.Get[TKey,TValue](ITypedCache`2 cache, TKey key, Func`1 factory)
+   at Abp.MultiTenancy.TenantCache`2.GetOrNull(Int32 tenantId)
+   at Abp.MultiTenancy.TenantStore.Find(Int32 tenantId)
+   at Abp.Configuration.SettingManager.<>c__DisplayClass70_0.<<GetTenantSettingsFromCacheAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Abp.Runtime.Caching.TypedCacheWrapper`2.<>c__DisplayClass21_0.<<GetAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Abp.Runtime.Caching.AbpCacheBase`2.GetAsync(TKey key, Func`2 factory)
+   at Abp.Runtime.Caching.TypedCacheWrapper`2.CastAsync(Task`1 valueTask)
+   at Abp.Configuration.SettingManager.GetTenantSettingsFromCacheAsync(Int32 tenantId)
+   at Abp.Configuration.SettingManager.GetReadOnlyTenantSettingsAsync(Int32 tenantId)
+   at Abp.Configuration.SettingManager.GetSettingValueForTenantOrNullAsync(Int32 tenantId, String name)
+   at Abp.Configuration.SettingManager.GetSettingValueInternalAsync(String name, Nullable`1 tenantId, Nullable`1 userId, Boolean fallbackToDefault)
+   at Abp.Configuration.SettingManagerExtensions.GetSettingValueAsync[T](ISettingManager settingManager, String name)
+   at ChocolateySoftware.ChocolateyManagement.Kpis.KpiDomainService.#=zYLIA26yTo$XPqYbYq1elIVc=.MoveNext()
+--- End of stack trace from previous location ---
+   at Abp.Domain.Uow.UnitOfWorkInterceptor.InternalInterceptAsynchronous(IInvocation invocation)
+   at chocolatey.console.service.infrastructure.app.tasks.UpdateKpisTask.#=ztFo7OBu5V017qD$5FR5KdKM=.MoveNext()
+2026-09-24 10:06:23,653 11 [INFO ] - ChocolateyCentralManagementTask will check for Computer information messages to process in Chocolatey Central Management every 0 minute(s)
+2026-09-24 10:06:23,654 11 [INFO ] - ChocolateyCentralManagementTask will check for Computer facts messages to process in Chocolatey Central Management every 0 minute(s)
+2026-09-24 10:06:23,654 11 [INFO ] - ChocolateyCentralManagementTask will check for Deployment Step result messages to process in Chocolatey Central Management every 0 minute(s)
+2026-09-24 10:06:23,655 11 [INFO ] - ChocolateyCentralManagementTask will check for unreachable Computers in Chocolatey Central Management every 3 minute(s).
+2026-09-24 10:06:23,657 11 [INFO ] - Checking for Deployment Steps that have been unreachable for the period allotted for machines to contact...
+2026-09-24 10:06:23,791 11 [ERROR] - Unable to check for unreachable computers in Chocolatey Central Management.:
+ An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
+2026-09-24 10:06:23,792 11 [WARN ] - This is try 1/3. Retrying after 20000 milliseconds.
+ Error converted to warning:
+ An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
+2026-09-24 10:06:43,804 11 [INFO ] - Checking for Deployment Steps that have been unreachable for the period allotted for machines to contact...
+2026-09-24 10:06:53,827 11 [ERROR] - Unable to check for unreachable computers in Chocolatey Central Management.:
+ An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
+2026-09-24 10:06:53,828 11 [WARN ] - This is try 2/3. Retrying after 30000 milliseconds.
+ Error converted to warning:
+ An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure' to the 'UseSqlServer' call.
