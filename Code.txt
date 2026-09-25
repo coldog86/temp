@@ -1,12 +1,1 @@
-$NewHost = 'server01.domain.local'
-
-$current = (Get-Item WSMan:\localhost\Client\TrustedHosts).Value
-
-if ($current -split ',' | Where-Object { $_.Trim() -eq $NewHost }) {
-    Write-Host "$NewHost already in TrustedHosts"
-} else {
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $NewHost -Concatenate -Force
-    Write-Host "Added $NewHost"
-}
-
-(Get-Item WSMan:\localhost\Client\TrustedHosts).Value
+grep -i "version" /opt/jfrog/xray/var/log/console.log | head
