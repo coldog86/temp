@@ -1,16 +1,74 @@
-hostname -I
-sudo ss -tlnp | grep 8080
+[cm3745_a@epriapp349 ~]$
+timeout 5 bash -c '</dev/tcp/proxy.dmz.ige/8080' && echo OPEN || echo CLOSED
+curl -v -x http://proxy.dmz.ige:8080 -U service_eapautprd -o /dev/null https://jxray.jfrog.io/api/v1/system/ping
+curl -v -x http://proxy.dmz.ige:8080 -U service_eapautprd https://releases.jfrog.io/artifactory/api/system/ping
 
-  sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -i proxy
-
-
-
-timeout 5 bash -c '</dev/tcp/PROXY_HOST/PORT' && echo OPEN || echo CLOSED
-curl -v -x http://PROXY_HOST:PORT -U USER -o /dev/null https://jxray.jfrog.io/api/v1/system/ping
-curl -v -x http://PROXY_HOST:PORT -U USER https://releases.jfrog.io/artifactory/api/system/ping
-
-curl -x http://PROXY_HOST:PORT -U USER -o /tmp/xray-test.bin -w "\nHTTP %{http_code}, %{size_download} bytes, %{time_total}s\n" \
+curl -x http://proxy.dmz.ige:8080 -U service_eapautprd -o /tmp/xray-test.bin -w "\nHTTP %{http_code}, %{size_download} bytes, %{time_total}s\n" \
   https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/[release]/jfrog-cli-linux-amd64/jf
 rm -f /tmp/xray-test.bin
 
-openssl s_client -proxy PROXY_HOST:PORT -connect releases.jfrog.io:443 -showcerts </dev/null 2>/dev/null | awk '/BEGIN/,/END/' > /tmp/chain.pem
+openssl s_client -proxy proxy.dmz.ige:8080 -connect releases.jfrog.io:443 -showcerts </dev/null 2>/dev/null | awk '/BEGIN/,/END/' > /tmp/chain.pem
+OPEN
+Enter proxy password for user 'service_eapautprd':
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 165.12.252.220:8080...
+* Connected to proxy.dmz.ige (165.12.252.220) port 8080 (#0)
+* allocate connect buffer!
+* Establish HTTP proxy tunnel to jxray.jfrog.io:443
+* Proxy auth using Basic with user 'service_eapautprd'
+> CONNECT jxray.jfrog.io:443 HTTP/1.1
+> Host: jxray.jfrog.io:443
+> Proxy-Authorization: Basic c2VydmljZV9lYXBhdXRwcmQ6QTgwR0F0cFBPOUNPS3Y0SGxwR2xUSmV1dGVndjRBdlg=
+> User-Agent: curl/7.76.1
+> Proxy-Connection: Keep-Alive
+>
+< HTTP/1.1 407 authenticationrequired
+< Via: 1.1 165.12.252.119 (Skyhigh Secure Web Gateway 12.2.18.54125)
+< Date: Tue, 29 Sep 2026 04:15:39 GMT
+< Content-Type: text/html
+< Cache-Control: no-cache
+< Content-Length: 8439
+< X-Frame-Options: deny
+< Proxy-Connection: Keep-Alive
+< Proxy-Authenticate: NTLM
+< Proxy-Authenticate: Basic realm="Skyhigh Secure Web Gateway"
+* Authentication problem. Ignoring this.
+<
+* Received HTTP code 407 from proxy after CONNECT
+* CONNECT phase completed!
+* Closing connection 0
+curl: (56) Received HTTP code 407 from proxy after CONNECT
+Enter proxy password for user 'service_eapautprd':
+*   Trying 165.12.252.220:8080...
+* Connected to proxy.dmz.ige (165.12.252.220) port 8080 (#0)
+* allocate connect buffer!
+* Establish HTTP proxy tunnel to releases.jfrog.io:443
+* Proxy auth using Basic with user 'service_eapautprd'
+> CONNECT releases.jfrog.io:443 HTTP/1.1
+> Host: releases.jfrog.io:443
+> Proxy-Authorization: Basic c2VydmljZV9lYXBhdXRwcmQ6QTgwR0F0cFBPOUNPS3Y0SGxwR2xUSmV1dGVndjRBdlg=
+> User-Agent: curl/7.76.1
+> Proxy-Connection: Keep-Alive
+>
+< HTTP/1.1 407 authenticationrequired
+< Via: 1.1 165.12.252.119 (Skyhigh Secure Web Gateway 12.2.18.54125)
+< Date: Tue, 29 Sep 2026 04:15:46 GMT
+< Content-Type: text/html
+< Cache-Control: no-cache
+< Content-Length: 8445
+< X-Frame-Options: deny
+< Proxy-Connection: Keep-Alive
+< Proxy-Authenticate: NTLM
+< Proxy-Authenticate: Basic realm="Skyhigh Secure Web Gateway"
+* Authentication problem. Ignoring this.
+<
+* Received HTTP code 407 from proxy after CONNECT
+* CONNECT phase completed!
+* Closing connection 0
+curl: (56) Received HTTP code 407 from proxy after CONNECT
+Enter proxy password for user 'service_eapautprd':
+curl: (3) bad range in URL position 56:
+https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/[release]/jfrog-cli-linux-amd64/jf
+                                                       ^
+[cm3745_a@epriapp349 ~]$
