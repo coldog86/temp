@@ -1,49 +1,28 @@
-[cm3745_x@dpriapp311 ~]$ lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
-readlink -f /opt/jfrog/xray/var
-df -h /var /opt /opt/jfrog/xray/var/work
-sudo du -sh /var/opt/jfrog/xray /var/lib/pgsql 2>/dev/null
-sudo vgs
-grep -vE '^#|^$' /etc/fstab
-getenforce
-NAME                      SIZE TYPE FSTYPE      MOUNTPOINT
-sda                       450G disk
-├─sda1                      2G part xfs         /boot
-└─sda2                    448G part LVM2_member
-  ├─vg_soe-root            12G lvm  xfs         /
-  ├─vg_soe-swap             4G lvm  swap        [SWAP]
-  ├─vg_soe-var_log_audit   13G lvm  xfs         /var/log/audit
-  ├─vg_soe-var_tmp          4G lvm  xfs         /var/tmp
-  ├─vg_soe-var_log         14G lvm  xfs         /var/log
-  ├─vg_soe-tmp              4G lvm  xfs         /tmp
-  ├─vg_soe-opt            308G lvm  xfs         /opt
-  ├─vg_soe-home             8G lvm  xfs         /home
-  └─vg_soe-var             12G lvm  xfs         /var
-sdb                       150G disk LVM2_member
-└─vg_data-lv_jfrog        100G lvm  xfs         /jfrog
-sr0                      1024M rom
-/var/opt/jfrog/xray
-Filesystem              Size  Used Avail Use% Mounted on
-/dev/mapper/vg_soe-var   12G  2.8G  9.2G  24% /var
-/dev/mapper/vg_soe-opt  308G  7.1G  301G   3% /opt
-/dev/mapper/vg_soe-var   12G  2.8G  9.2G  24% /var
-1.7G    /var/opt/jfrog/xray
-145M    /var/lib/pgsql
-  VG      #PV #LV #SN Attr   VSize    VFree
-  vg_data   1   1   0 wz--n- <100.00g      0
-  vg_soe    1   9   0 wz--n- <448.00g <69.00g
-/dev/mapper/vg_soe-root /                       xfs     defaults        0 0
-UUID=b97fdc1b-b51f-4ef7-9450-4599a4ccc354 /boot                   xfs     defau                                                                                                                                                              lts        0 0
-/dev/mapper/vg_soe-home /home                   xfs     defaults,nodev,noexec,n                                                                                                                                                              osuid 0 0
-/dev/mapper/vg_soe-opt  /opt                    xfs     defaults        0 0
-/dev/mapper/vg_soe-tmp  /tmp                    xfs     defaults,nodev,noexec,n                                                                                                                                                              osuid 0 0
-/dev/mapper/vg_soe-var  /var                    xfs     defaults,nodev,nosuid 0                                                                                                                                                               0
-/dev/mapper/vg_soe-var_log /var/log xfs defaults,nodev,nosuid,noexec 0 0
-/dev/mapper/vg_soe-var_log_audit /var/log/audit xfs defaults,nodev,nosuid,noexe                                                                                                                                                              c 0 0
-/dev/mapper/vg_soe-var_tmp /var/tmp                xfs     defaults,nodev,noexe                                                                                                                                                              c,nosuid 0 0
-/dev/mapper/vg_soe-swap none                    swap    defaults        0 0
-/dev/mapper/vg_data-lv_jfrog /jfrog             xfs     defaults,nodev,nosuid 0                                                                                                                                                               0
-tmpfs /dev/shm tmpfs rw,nosuid,nodev,noexec,seclabel,inode64 0 0
-Permissive
-[cm3745_x@dpriapp311 ~]$
+  sudo grep -A4 -i database /opt/jfrog/xray/var/etc/system.yaml
 
+sudo systemctl stop xray
+sudo systemctl stop postgresql          # only if the DB is local
 
+sudo mkdir -p /opt/jfrog-data/xray
+sudo rsync -aHAX --info=progress2 /var/opt/jfrog/xray/ /opt/jfrog-data/xray/
+echo $?                                  # must be 0 before continuing
+sudo mv /var/opt/jfrog/xray /var/opt/jfrog/xray.old
+sudo mkdir /var/opt/jfrog/xray
+echo '/opt/jfrog-data/xray /var/opt/jfrog/xray none bind 0 0' | sudo tee -a /etc/fstab
+
+sudo mkdir -p /opt/jfrog-data/pgsql
+sudo rsync -aHAX --info=progress2 /var/lib/pgsql/ /opt/jfrog-data/pgsql/
+echo $?
+sudo mv /var/lib/pgsql /var/lib/pgsql.old
+sudo mkdir /var/lib/pgsql
+echo '/opt/jfrog-data/pgsql /var/lib/pgsql none bind 0 0' | sudo tee -a /etc/fstab
+
+sudo systemctl daemon-reload
+sudo mount -a
+findmnt /var/opt/jfrog/xray; findmnt /var/lib/pgsql
+sudo chown xray:xray /var/opt/jfrog/xray
+sudo chown postgres:postgres /var/lib/pgsql         # if moved
+sudo restorecon -Rv /var/opt/jfrog/xray /var/lib/pgsql
+sudo systemctl start postgresql                     # if moved
+sudo systemctl start xray
+df -h /opt/jfrog/xray/var/work
