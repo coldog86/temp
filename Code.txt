@@ -1,2 +1,3 @@
 
    curl -v -x http://service_eapautprd:A80GAtpPO9COKv4HlpGlTJeutegv4AvX@http://165.12.252.220:8080 -o /dev/null https://releases.jfrog.io/
+curl -v -x http://165.12.252.220:8080 -U 'service_eapautprd:A80GAtpPO9COKv4HlpGlTJeutegv4AvX' -o /dev/null https://releases.jfrog.io/
