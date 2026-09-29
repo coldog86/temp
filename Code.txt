@@ -1,36 +1,10 @@
-# stop in order
-sudo systemctl stop xray
-sudo systemctl stop postgresql        # use the exact service name from above
+df -h /var /opt/jfrog/xray/var/work /var/lib/pgsql
+findmnt /var/opt/jfrog/xray; findmnt /var/lib/pgsql
+curl -s http://localhost:8082/router/api/v1/system/health | jq '.services[] | {service_name, state}'
 
-# Xray data
-sudo mkdir -p /data/xray-updates/xray
-sudo rsync -aHAX /var/opt/jfrog/xray/ /data/xray-updates/xray/
-sudo mv /var/opt/jfrog/xray /var/opt/jfrog/xray.old
-sudo mkdir /var/opt/jfrog/xray
+LOG=/opt/jfrog/xray/var/log/xray-server-service.log
+RID=$(sudo grep "Triggering db sync" $LOG | tail -1 | grep -oP '\[\K[0-9a-f]{32}(?=\])')
+echo "Request: $RID"
+sudo grep "$RID" $LOG
 
-# Postgres data
-sudo mkdir -p /data/xray-updates/pgsql
-sudo rsync -aHAX /var/lib/pgsql/ /data/xray-updates/pgsql/
-sudo mv /var/lib/pgsql /var/lib/pgsql.old
-sudo mkdir /var/lib/pgsql
-
-# bind mounts (after the sdb mount so boot order is right)
-echo '/data/xray-updates/xray  /var/opt/jfrog/xray  none  bind  0 0' | sudo tee -a /etc/fstab
-echo '/data/xray-updates/pgsql /var/lib/pgsql       none  bind  0 0' | sudo tee -a /etc/fstab
-sudo systemctl daemon-reload
-sudo mount /var/opt/jfrog/xray
-sudo mount /var/lib/pgsql
-
-# ownership and SELinux labels (policy is path-based, so bind mounts at the original paths get the right contexts)
-sudo chown xray:xray /var/opt/jfrog/xray
-sudo chown postgres:postgres /var/lib/pgsql
-sudo restorecon -Rv /var/opt/jfrog/xray /var/lib/pgsql
-
-# start in order
-sudo systemctl start postgresql
-sudo systemctl start xray
-
-
-
-ps aux | grep [r]sync
-sudo du -sh /data/xray-updates/xray; sleep 30; sudo du -sh /data/xray-updates/xray
+watch -n 10 'sudo ls -la /opt/jfrog/xray/var/work/server/updates/v3/; df -h /opt/jfrog/xray/var/work'
