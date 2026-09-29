@@ -16,9 +16,7 @@ curl -v -x http://165.12.252.220:8080 -U "service_dapautprd:fK8b3_,pB+(0oWuKH3uQ
 curl -v --max-time 30 -x http://165.12.252.220:8080 -U "service_dapautprd:<password>" -o block2.html https://releases.jfrog.io/
 
 
-
-C:\Windows\system32>
-C:\Windows\system32>curl -v --max-time 30 -x http://165.12.252.220:8080 -U "service_dapautprd:<password>" -o block2.html https://releases.jfrog.io/
+C:\Windows\system32>curl -v --max-time 30 -x http://165.12.252.220:8080 -U "service_dapautprd:fK8b3_,pB+(0oWuKH3uQ+SQB4-GSNe" -o block2.html https://releases.jfrog.io/
 * Uses proxy env variable no_proxy == 'dpriapp308.mgt.dis.gov.au'
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
@@ -29,7 +27,7 @@ C:\Windows\system32>curl -v --max-time 30 -x http://165.12.252.220:8080 -U "serv
 * Establish HTTP proxy tunnel to releases.jfrog.io:443
 > CONNECT releases.jfrog.io:443 HTTP/1.1
 > Host: releases.jfrog.io:443
-> Proxy-Authorization: Basic c2VydmljZV9kYXBhdXRwcmQ6PHBhc3N3b3JkPg==
+> Proxy-Authorization: Basic c2VydmljZV9kYXBhdXRwcmQ6Zks4YjNfLHBCKygwb1d1S0gzdVErU1FCNC1HU05l
 > User-Agent: curl/8.13.0
 > Proxy-Connection: Keep-Alive
 >
