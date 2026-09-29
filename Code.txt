@@ -19,3 +19,24 @@ sudo restorecon -Rv /var/opt/jfrog/xray
 sudo systemctl start xray
 df -h /opt/jfrog/xray/var/work
 curl -s http://localhost:8082/router/api/v1/system/health | jq
+
+
+
+[cm3745_a@epriapp349 ~]$ df -h /data/xray-updates
+sudo ls -la /data/xray-updates
+grep xray-updates /etc/fstab
+sudo du -sh /var/opt/jfrog/xray
+getenforce
+sudo -u postgres psql -Atc "show data_directory" 2>/dev/null | xargs -r df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb1       200G   20G  181G  10% /data/xray-updates
+total 18913908
+drwxr-xr-x. 2 xray xray          60 Sep 10 17:28 .
+drwxr-xr-x. 4 xray xray          42 Sep 10 16:40 ..
+-rw-r--r--. 1 xray xray 19367838847 Sep 10 17:11 xray_public_data_update_package_onboarding.zip
+UUID=22cd265b-a346-4375-898b-911fac1ec35a  /data/xray-updates  xfs  defaults  0 0
+14G     /var/opt/jfrog/xray
+Enforcing
+df: /var/lib/pgsql/data: Permission denied
+[cm3745_a@epriapp349 ~]$
+
