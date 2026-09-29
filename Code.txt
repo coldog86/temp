@@ -1,19 +1,9 @@
-[cm3745_a@epriapp349 ~]$ sudo grep 609625ad30eeae34ff9aeb442ee48463 /opt/jfrog/xray/var/log/xray-server-service.log
-2026-09-29T04:24:40.445Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [updates_handler:52            ] [ui/updates/start                ] Triggering db sync
-2026-09-29T04:24:40.446Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [license_service:158           ] [ui/updates/start                ] ValidateLicenseForDBSync: Number of bin managers: 1, number of bin managers with active licenses: 1
-2026-09-29T04:24:40.449Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [updater:420                   ] [ui/updates/start                ] About to start online PublicData updates process, state before update is: &{LastSuccessfulUpdate:0 ShouldDoOnboarding:true IsRunning:false OfflineUpdates:false LastError:Data sync from global database server has failed. Progress:0 IncludesPremium:false SchemaVersion:0}
-2026-09-29T04:24:40.449Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [updater:515                   ] [ui/updates/start                ] Starting online PublicData updates process
-2026-09-29T04:24:40.457Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [csv_updates_executor:84       ] [ui/updates/start                ] Checking for PublicData updates from https://jxray.jfrog.io/api/v3/updates/onboarding
-2026-09-29T04:24:41.440Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [csv_updates_executor:123      ] [ui/updates/start                ] Received PublicData updates info &{Files:[{DownloadURL:https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwNzQyMjgxLCJpYXQiOjE3OTA2NTU4ODF9.4XaB7xhEjdVwDReWI3Jbj3PDQZA_SI-C-BfzftPVAx8 DownloadedFile:/opt/jfrog/xray/var/work/server/updates/v3/1790467214523_onboarding__onboarding_package__1790467214523.tar.zst IsDeletion:false IsPremium:false Sha256:a47e20015268b5021bc2fbe14fd9389bcf6a8e2da4fc67303c8a69efa3d33022}] Timestamp:1790467214523 IsOnboarding:true}
-2026-09-29T04:24:41.443Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [updater:202                   ] [ui/updates/start                ] Cleaning up old downloaded PublicData updates files if needed (keepOfflineMainFile false)
-2026-09-29T04:24:41.443Z [jfxr ] [INFO ] [609625ad30eeae34ff9aeb442ee48463] [csv_updates_executor:133      ] [ui/updates/start                ] Downloading 1 PublicData update files
-2026-09-29T04:28:34.257Z [jfxr ] [ERROR] [609625ad30eeae34ff9aeb442ee48463] [updater:1112                  ] [ui/updates/start                ] Failed to download online PublicData updates
-[cm3745_a@epriapp349 ~]$
+df -h /opt/jfrog/xray/var/work /var/tmp
+sudo ls -la /opt/jfrog/xray/var/work/server/updates/v3
 
+curl -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' \
+  -o /var/tmp/onboarding.tar.zst \
+  -w "\nHTTP %{http_code}, %{size_download} bytes, %{time_total}s\n" \
+  "https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwNzQyMjgxLCJpYXQiOjE3OTA2NTU4ODF9.4XaB7xhEjdVwDReWI3Jbj3PDQZA_SI-C-BfzftPVAx8"
 
-
-
-
-
-
-
+sha256sum /var/tmp/onboarding.tar.zst
