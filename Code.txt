@@ -29,3 +29,8 @@ sudo restorecon -Rv /var/opt/jfrog/xray /var/lib/pgsql
 # start in order
 sudo systemctl start postgresql
 sudo systemctl start xray
+
+
+
+ps aux | grep [r]sync
+sudo du -sh /data/xray-updates/xray; sleep 30; sudo du -sh /data/xray-updates/xray
