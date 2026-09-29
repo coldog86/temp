@@ -1,10 +1,7 @@
-df -h /var /opt/jfrog/xray/var/work /var/lib/pgsql
-findmnt /var/opt/jfrog/xray; findmnt /var/lib/pgsql
-curl -s http://localhost:8082/router/api/v1/system/health | jq '.services[] | {service_name, state}'
-
-LOG=/opt/jfrog/xray/var/log/xray-server-service.log
-RID=$(sudo grep "Triggering db sync" $LOG | tail -1 | grep -oP '\[\K[0-9a-f]{32}(?=\])')
-echo "Request: $RID"
-sudo grep "$RID" $LOG
-
-watch -n 10 'sudo ls -la /opt/jfrog/xray/var/work/server/updates/v3/; df -h /opt/jfrog/xray/var/work'
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
+readlink -f /opt/jfrog/xray/var
+df -h /var /opt /opt/jfrog/xray/var/work
+sudo du -sh /var/opt/jfrog/xray /var/lib/pgsql 2>/dev/null
+sudo vgs
+grep -vE '^#|^$' /etc/fstab
+getenforce
