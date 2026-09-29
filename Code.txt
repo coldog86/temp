@@ -13,39 +13,4 @@ curl -s -o NUL -w "%{http_code}\n" -x http://165.12.252.220:8080 -U service_eapa
 
 curl -v -x http://165.12.252.220:8080 -U "service_dapautprd:fK8b3_,pB+(0oWuKH3uQ+SQB4-GSNe" -o block2.html https://releases.jfrog.io/
 
-
-
-
-
-
-
-C:\Windows\system32>   curl -v -x http://service_dapautprd:fK8b3_,pB+(0oWuKH3uQ+SQB4-GSNe@http://165.12.252.220:8080 -o /dev/null https://releases.jfrog.io/
-* Uses proxy env variable no_proxy == 'dpriapp308.mgt.dis.gov.au'
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0* Could not resolve proxy: releases.jfrog.io
-* shutting down connection #0
-curl: (5) Could not resolve proxy: releases.jfrog.io
-
-C:\Windows\system32>curl -v -x http://165.12.252.220:8080 -U "service_dapautprd:fK8b3_,pB+(0oWuKH3uQ+SQB4-GSNe" -o block2.html https://releases.jfrog.io/
-* Uses proxy env variable no_proxy == 'dpriapp308.mgt.dis.gov.au'
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 165.12.252.220:8080...
-* CONNECT tunnel: HTTP/1.1 negotiated
-* allocate connect buffer
-* Proxy auth using Basic with user 'service_dapautprd'
-* Establish HTTP proxy tunnel to releases.jfrog.io:443
-> CONNECT releases.jfrog.io:443 HTTP/1.1
-> Host: releases.jfrog.io:443
-> Proxy-Authorization: Basic c2VydmljZV9kYXBhdXRwcmQ6Zks4YjNfLHBCKygwb1d1S0gzdVErU1FCNC1HU05l
-> User-Agent: curl/8.13.0
-> Proxy-Connection: Keep-Alive
->
-< HTTP/1.0 200 Connection Established
-<
-* CONNECT phase completed
-* CONNECT tunnel established, response 200
-* schannel: disabled automatic use of client certificate
-* ALPN: curl offers http/1.1
-
+curl -v --max-time 30 -x http://165.12.252.220:8080 -U "service_dapautprd:<password>" -o block2.html https://releases.jfrog.io/
