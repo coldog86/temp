@@ -1,31 +1,4 @@
-  sudo grep -A4 -i database /opt/jfrog/xray/var/etc/system.yaml
-
-sudo systemctl stop xray
-sudo systemctl stop postgresql          # only if the DB is local
-
-sudo mkdir -p /opt/jfrog-data/xray
-sudo rsync -aHAX --info=progress2 /var/opt/jfrog/xray/ /opt/jfrog-data/xray/
-echo $?                                  # must be 0 before continuing
-sudo mv /var/opt/jfrog/xray /var/opt/jfrog/xray.old
-sudo mkdir /var/opt/jfrog/xray
-echo '/opt/jfrog-data/xray /var/opt/jfrog/xray none bind 0 0' | sudo tee -a /etc/fstab
-
-sudo mkdir -p /opt/jfrog-data/pgsql
-sudo rsync -aHAX --info=progress2 /var/lib/pgsql/ /opt/jfrog-data/pgsql/
-echo $?
-sudo mv /var/lib/pgsql /var/lib/pgsql.old
-sudo mkdir /var/lib/pgsql
-echo '/opt/jfrog-data/pgsql /var/lib/pgsql none bind 0 0' | sudo tee -a /etc/fstab
-
-sudo systemctl daemon-reload
-sudo mount -a
-findmnt /var/opt/jfrog/xray; findmnt /var/lib/pgsql
-sudo chown xray:xray /var/opt/jfrog/xray
-sudo chown postgres:postgres /var/lib/pgsql         # if moved
-sudo restorecon -Rv /var/opt/jfrog/xray /var/lib/pgsql
-sudo systemctl start postgresql                     # if moved
-sudo systemctl start xray
-df -h /opt/jfrog/xray/var/work
-
-
-curl -v -x http://proxy.dmz.ige:8080 -U 'DOMAIN\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
+LOG=/opt/jfrog/xray/var/log/xray-server-service.log
+RID=$(sudo grep "Triggering db sync" $LOG | tail -1 | grep -oP '\[\K[0-9a-f]{32}(?=\])')
+echo "Request: $RID"; sudo grep "$RID" $LOG
+sudo grep -iE "decrypt|proxy" $LOG | tail -5
