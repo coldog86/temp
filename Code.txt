@@ -1,20 +1,28 @@
 <#
     Create-DecomRequest
+    Get-Cmdb_Operational_Vms_With_No_Owners
+    Get-CMDBobj
     Get-CmdbOperationalVms
     Get-CmdbOperationalVmsWithBadOwners
     Get-CmdbOperationalVmsWithNoOwners
     Get-CmdbVm
     Get-CmdbVmDecommisionRequest
     Get-CmdbZombieVms
-    Get-DomainObjs
-    Get-Operational_Cmdb_Vms_In_Departed_Ou
     Get-Disabled_VMs_In_Wild
+    Get-DomainObjs
+    Get-Enabled_Vms_In_Departed_Ou
+    Get-FormVariables
+    Get-Operational_Cmdb_Vms_In_Departed_Ou
     Get-Powered_On_Vms_In_Departed_Ou
-    Get-PoweredOff_VMs_In_Wild    
+    Get-PoweredOff_VMs_In_Wild
     Get-SnowQuery
     Get-SnowToken
     Get-SnowURI
+    Get-VmObject
     Invoke-SnowRequest
+    Populate-VmObj
+
+    External dependencies: Get-VraMachine, Get-InfobloxRecord, ActiveDirectory module
 #>
 
 # Invoke-SnowRequest
@@ -59,7 +67,7 @@ function Invoke-SnowRequest(){
             }
         }
         else {
-            Write-Host "##[error] No Response object on the exception — likely DNS/TLS/connectivity failure, not an HTTP error."
+            Write-Host "##[error] No Response object on the exception."
         }
     }
     return $response
@@ -98,12 +106,13 @@ function Get-SnowURI(){
         }
         else {
             $uri = 'https://dese.service-now.com/api/sn_sc/v1/servicecatalog/items/e7925ab3dbd97410a83f91a3e2961989/order_now'
-            Write-Host "##[debug] Decom URI = $($uri)"}
+            Write-Host "##[debug] Decom URI = $($uri)"
+        }
     }
 
     return $uri
 }
-    
+
 # Create Decom Request
 function Create-DecomRequest(){
     param(
@@ -111,33 +120,31 @@ function Create-DecomRequest(){
         [Parameter(Mandatory = $true)] $VmName,
         [Parameter(Mandatory = $false)][switch] $DevCall
     )
-    Write-Host "##[command] ##[FUNCTION] Create-DecomRequest -VmName $vmName -SnowBearerToken $snowBearerToken -DevCall $devCall" -ForegroundColor Cyan
-    
+    Write-Host "##[command] ##[FUNCTION] Create-DecomRequest -VmName $vmName -DevCall $devCall" -ForegroundColor Cyan
+
     $startDate = Get-Date -Format "dd/MM/yyyy HH:mm:ss"
     $endDate   = (Get-Date).AddHours(2).ToString("dd/MM/yyyy HH:mm:ss")
     $shortDescription = "Server Decommission (Virtual) - $vmName"
 
     if($devCall){
-        $cmdbVm = Get-CmdbVm -SnowBearerToken $snowBearerToken -VmName $vmName -DevCall 
-        $instance = "desedev.service-now.com"         
-        $uri = Get-SnowURI -Function decom -DevCall 
+        $cmdbVm = Get-CmdbVm -SnowBearerToken $snowBearerToken -VmName $vmName -DevCall
+        $uri = Get-SnowURI -Function decom -DevCall
     } else {
-        $cmdbVm = Get-CmdbVm -SnowBearerToken $snowBearerToken -VmName $vmName 
-        $instance = "dese.service-now.com"
-        $uri = Get-SnowURI -Function decom 
+        $cmdbVm = Get-CmdbVm -SnowBearerToken $snowBearerToken -VmName $vmName
+        $uri = Get-SnowURI -Function decom
     }
-    # "6b971f86dbf0e41042241a314a9619e0"
+
     $jsonBody = @{
         "sysparm_quantity" = "1"
         "variables" = @{
             "configuration_item" = $cmdbVm.sys_id
             "cmdb_ci" = $cmdbVm.sys_id
-            "affected_ci_list" = $cmdbVm.sys_id 
+            "affected_ci_list" = $cmdbVm.sys_id
             "short_description" = $shortDescription
             "start_date" = $startDate
             "end_date" = $endDate
             "server_name" = $vmName
-    
+
             "database_component" = "No"
             "u_outage_required" = "no"
             "cab_required" = "No"
@@ -165,17 +172,17 @@ function Create-DecomRequest(){
     return $request
 }
 
-# Get-FormVariables 
+# Get-FormVariables
 function Get-FormVariables(){
     param(
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $true)] $FormSysId,
         [Parameter(Mandatory = $false)][switch] $DevCall
     )
-    Write-Host "##[command] ##[FUNCTION] Get-FormVariables -FormSysId $formSysId -SnowBearerToken $snowBearerToken -DevCall $devCall"
+    Write-Host "##[command] ##[FUNCTION] Get-FormVariables -FormSysId $formSysId -DevCall $devCall"
 
     if($devCall){
-        $instance = "desedev.service-now.com" 
+        $instance = "desedev.service-now.com"
     } else {
         $instance = "dese.service-now.com"
     }
@@ -186,22 +193,23 @@ function Get-FormVariables(){
     $directVars = Invoke-RestMethod `
         -Uri $varsUri `
         -Method GET `
+        -UseBasicParsing `
         -Headers @{
             Accept = "application/json"
             Authorization = "Bearer $snowBearerToken"
         }
     foreach ($directVar in $directVars.result){
-        $vars += $directVar | Select name, question_text, type, mandatory, reference, sys_id, variable_set
+        $vars += $directVar | Select-Object name, question_text, type, mandatory, reference, sys_id, variable_set
     }
 
     $setUri = "https://$instance/api/now/table/io_set_item?sysparm_query=sc_cat_item=$formSysId"
     $sets = Invoke-RestMethod `
         -Uri $setUri `
+        -UseBasicParsing `
         -Headers @{
             Accept = "application/json"
             Authorization = "Bearer $snowBearerToken"
         }
-
 
     foreach ($set in $sets.result) {
         $setId = $set.variable_set.value
@@ -210,13 +218,14 @@ function Get-FormVariables(){
 
         $setVars = Invoke-RestMethod `
             -Uri $setVarsUri `
+            -UseBasicParsing `
             -Headers @{
                 Accept = "application/json"
                 Authorization = "Bearer $snowBearerToken"
             }
 
         foreach ($setVar in $setVars.result){
-            $vars += $setVar | Select name, question_text, type, mandatory, reference, sys_id, variable_set
+            $vars += $setVar | Select-Object name, question_text, type, mandatory, reference, sys_id, variable_set
         }
     }
 
@@ -231,18 +240,22 @@ function Get-Cmdb_Operational_Vms_With_No_Owners(){
         [Parameter(Mandatory = $true)] $VraBearerToken,
         [Parameter(Mandatory = $true)] $InfobloxCredential
     )
-    Write-Host "##[command] ##[FUNCTION] Get-Cmdb_Operational_Vms_With_No_Owners -Limit $limit -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential"
+    Write-Host "##[command] ##[FUNCTION] Get-Cmdb_Operational_Vms_With_No_Owners -Limit $limit"
 
     $vms = Get-CmdbOperationalVms -SnowBearerToken $snowBearerToken -Limit $limit
     $cmdb_Operational_Vms_With_No_Owners = @()
 
     foreach ($vm in $vms){
-        if($vm.owned_by.link -ne $null){
+        if([string]::IsNullOrEmpty($vm.owned_by.link)){
             if($vm.operational_status -eq 1){
-                $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
+                if([string]::IsNullOrEmpty($vm.os_domain)){
+                    Write-Host "##[warning] $($vm.name) has no os_domain in CMDB - skipping AD/vRA/Infoblox enrichment"
+                    continue
+                }
+                $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $vm.os_domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
                 $cmdb_Operational_Vms_With_No_Owners += $vmObj
             }
-        }   
+        }
     }
     return $cmdb_Operational_Vms_With_No_Owners
 }
@@ -250,55 +263,55 @@ function Get-Cmdb_Operational_Vms_With_No_Owners(){
 # Get-CMDBobj
 function Get-CMDBobj(){
     param(
-        [Parameter(Mandatory=$true)] $CmdbVm,
+        [Parameter(Mandatory = $true)] $CmdbVm,
         [Parameter(Mandatory = $true)] $SnowBearerToken
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CMDBobj -CmdbVm $cmdbVm -SnowBearerToken $snowBearerToken"
+    Write-Host "##[command] ##[FUNCTION] Get-CMDBobj -CmdbVm $($cmdbVm.name)"
 
     # Get owner
-    if($null -ne $vm.owned_by.link){ 
-        $owner = (Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result 
-    } 
-    else { 
-        $owner = $null 
+    if($null -ne $cmdbVm.owned_by.link){
+        $owner = (Get-SnowQuery -Uri $cmdbVm.owned_by.link -SnowBearerToken $snowBearerToken).result
+    }
+    else {
+        $owner = $null
     }
 
-    $CMDBobj = [PSCustomObject]@{	
+    $CMDBobj = [PSCustomObject]@{
         name = $cmdbVm.name
-        ip_address = $cmdbVm.ip_address	
-        fqdn = $cmdbVm.fqdn	
-        last_discovered	= $cmdbVm.last_discovered	
+        ip_address = $cmdbVm.ip_address
+        fqdn = $cmdbVm.fqdn
+        last_discovered = $cmdbVm.last_discovered
         os = $cmdbVm.os
         os_version = $cmdbVm.os_version
         life_cycle_stage = $cmdbVm.life_cycle_stage.value
-        life_cycle_stage_status	= $cmdbVm.life_cycle_stage_status.value
-        managed_by = if ($null -ne $cmdbVm.managed_by.link){ (Get-SnowQuery -Uri $cmdbVm.managed_by.link -SnowBearerToken $snowBearerToken).result.name	 } else { $null }
-        u_tags = $vm.u_tags	
-        company = if ($null -ne $cmdbVm.company.link){ (Get-SnowQuery -Uri $cmdbVm.company.link -SnowBearerToken $snowBearerToken).result.name  } else { $null }
+        life_cycle_stage_status = $cmdbVm.life_cycle_stage_status.value
+        managed_by = if ($null -ne $cmdbVm.managed_by.link){ (Get-SnowQuery -Uri $cmdbVm.managed_by.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
+        u_tags = $cmdbVm.u_tags
+        company = if ($null -ne $cmdbVm.company.link){ (Get-SnowQuery -Uri $cmdbVm.company.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
         u_function = $cmdbVm.u_function
-        comments = $cmdbVm.comments	
-        u_purpose = $vm.u_purpose	
-        short_description = $vm.short_description
-        sys_updated_on = $vm.sys_updated_on
+        comments = $cmdbVm.comments
+        u_purpose = $cmdbVm.u_purpose
+        short_description = $cmdbVm.short_description
+        sys_updated_on = $cmdbVm.sys_updated_on
         owner_name = $owner.name
-        user_name = $owner.user_name 
+        user_name = $owner.user_name
         Owner_Active = $owner.active
         u_cims_user_state = $owner.u_cims_user_state
         last_login = $owner.last_login
-        AD_location = $owner.source 
-        owner_link = $vm.owned_by.link
-    }	
+        AD_location = $owner.source
+        owner_link = $cmdbVm.owned_by.link
+    }
 
     return $CMDBobj
 }
-																																																																																										
+
 # Get-CmdbZombieVms
 function Get-CmdbZombieVms(){
     param(
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $false)][int] $limit = 10000
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbZombieVms -SnowBearerToken $snowBearerToken -Limit $limit"
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbZombieVms -Limit $limit"
 
     $vms = Get-CmdbOperationalVms -SnowBearerToken $snowBearerToken -Limit $limit
     $zombies = @()
@@ -313,41 +326,41 @@ function Get-CmdbZombieVms(){
 
         if($action -eq 'yes'){
             # Get owner
-            if($null -ne $vm.owned_by.link){ 
-                $owner = (Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result 
-            } 
-            else { 
-                $owner = $null 
+            if($null -ne $vm.owned_by.link){
+                $owner = (Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result
+            }
+            else {
+                $owner = $null
             }
 
-            $zombie = [PSCustomObject]@{	
+            $zombie = [PSCustomObject]@{
                 name = $vm.name
-                ip_address = $vm.ip_address	
-                fqdn = $vm.fqdn	
-                last_discovered	= $vm.last_discovered	
+                ip_address = $vm.ip_address
+                fqdn = $vm.fqdn
+                last_discovered = $vm.last_discovered
                 os = $vm.os
                 os_version = $vm.os_version
                 life_cycle_stage = $vm.life_cycle_stage.value
-                life_cycle_stage_status	= $vm.life_cycle_stage_status.value
-                managed_by = if ($null -ne $vm.managed_by.link){ (Get-SnowQuery -Uri $vm.managed_by.link -SnowBearerToken $snowBearerToken).result.name	 } else { $null }
-                u_tags = $vm.u_tags	
-                company = if ($null -ne $vm.company.link){ (Get-SnowQuery -Uri $vm.company.link -SnowBearerToken $snowBearerToken).result.name  } else { $null }
+                life_cycle_stage_status = $vm.life_cycle_stage_status.value
+                managed_by = if ($null -ne $vm.managed_by.link){ (Get-SnowQuery -Uri $vm.managed_by.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
+                u_tags = $vm.u_tags
+                company = if ($null -ne $vm.company.link){ (Get-SnowQuery -Uri $vm.company.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
                 u_function = $vm.u_function
-                comments = $vm.comments	
-                u_purpose = $vm.u_purpose	
+                comments = $vm.comments
+                u_purpose = $vm.u_purpose
                 short_description = $vm.short_description
                 sys_updated_on = $vm.sys_updated_on
                 owner_name = $owner.name
-                user_name = $owner.user_name 
+                user_name = $owner.user_name
                 Owner_Active = $owner.active
                 u_cims_user_state = $owner.u_cims_user_state
                 last_login = $owner.last_login
-                AD_location = $owner.source 
+                AD_location = $owner.source
                 owner_link = $vm.owned_by.link
-            }	
-            $zombies += $zombie                
+            }
+            $zombies += $zombie
         }
-    }   
+    }
     return $zombies
 }
 
@@ -357,43 +370,35 @@ function Get-CmdbOperationalVmsWithBadOwners(){
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $false)][int] $limit = 10000
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVmsWithBadOwners -SnowBearerToken $snowBearerToken -Limit $limit"
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVmsWithBadOwners -Limit $limit"
 
     $vms = Get-CmdbOperationalVms -SnowBearerToken $snowBearerToken -Limit $limit
     $badOwners = @()
 
     foreach ($vm in $vms){
-        if($vm.owned_by.link -ne $null){
+        if($null -ne $vm.owned_by.link){
             if($vm.operational_status -eq 1){
-                if((Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result.active -ne 'true'){
-                    # Get owner
-                    if($null -ne $vm.owned_by.link){ 
-                        $owner = (Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result 
-                    } 
-                    else { 
-                        $owner = $null 
-                    }
-                    
-                    # create my fancy object
+                $owner = (Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result
+                if($owner.active -ne 'true'){
                     $badOwner = [PSCustomObject]@{
                         VmName = $vm.name
                         os = $vm.os
-                        ip_address = $vm.ip_address	
-                        fqdn = $vm.fqdn	
+                        ip_address = $vm.ip_address
+                        fqdn = $vm.fqdn
                         life_cycle_stage_status = $vm.life_cycle_stage_status.value
                         life_cycle_stage = $vm.life_cycle_stage.value
                         owner_name = $owner.name
-                        user_name = $owner.user_name 
+                        user_name = $owner.user_name
                         Owner_Active = $owner.active
                         u_cims_user_state = $owner.u_cims_user_state
                         last_login = $owner.last_login
-                        AD_location = $owner.source 
+                        AD_location = $owner.source
                         owner_link = $vm.owned_by.link
                     }
                     $badOwners += $badOwner
                 }
             }
-        }   
+        }
     }
     return $badOwners
 }
@@ -404,37 +409,35 @@ function Get-CmdbOperationalVmsWithNoOwners(){
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $false)][int] $limit = 10000
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVmsWithNoOwners -SnowBearerToken $snowBearerToken -Limit $limit"
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVmsWithNoOwners -Limit $limit"
 
     $vms = Get-CmdbOperationalVms -SnowBearerToken $snowBearerToken -Limit $limit
     $noOwners = @()
 
     foreach ($vm in $vms){
-        if($vm.owned_by.link -ne $null){
+        if([string]::IsNullOrEmpty($vm.owned_by.link)){
             if($vm.operational_status -eq 1){
-                if((Get-SnowQuery -Uri $vm.owned_by.link -SnowBearerToken $snowBearerToken).result.active -ne 'true'){
-                    $noOwner = [PSCustomObject]@{	
-                        name = $vm.name
-                        ip_address = $vm.ip_address	
-                        fqdn = $vm.fqdn	
-                        last_discovered	= $vm.last_discovered	
-                        os = $vm.os
-                        os_version = $vm.os_version
-                        life_cycle_stage = $vm.life_cycle_stage.value
-                        life_cycle_stage_status	= $vm.life_cycle_stage_status.value
-                        managed_by = if ($null -ne $vm.managed_by.link){ (Get-SnowQuery -Uri $vm.managed_by.link -SnowBearerToken $snowBearerToken).result.name	 } else { $null }
-                        u_tags = $vm.u_tags	
-                        company = if ($null -ne $vm.company.link){ (Get-SnowQuery -Uri $vm.company.link -SnowBearerToken $snowBearerToken).result.name  } else { $null }
-                        u_function = $vm.u_function
-                        comments = $vm.comments	
-                        u_purpose = $vm.u_purpose	
-                        short_description = $vm.short_description
-                        sys_updated_on = $vm.sys_updated_on
-                    }	
-                    $noOwners += $noOwner
+                $noOwner = [PSCustomObject]@{
+                    name = $vm.name
+                    ip_address = $vm.ip_address
+                    fqdn = $vm.fqdn
+                    last_discovered = $vm.last_discovered
+                    os = $vm.os
+                    os_version = $vm.os_version
+                    life_cycle_stage = $vm.life_cycle_stage.value
+                    life_cycle_stage_status = $vm.life_cycle_stage_status.value
+                    managed_by = if ($null -ne $vm.managed_by.link){ (Get-SnowQuery -Uri $vm.managed_by.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
+                    u_tags = $vm.u_tags
+                    company = if ($null -ne $vm.company.link){ (Get-SnowQuery -Uri $vm.company.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
+                    u_function = $vm.u_function
+                    comments = $vm.comments
+                    u_purpose = $vm.u_purpose
+                    short_description = $vm.short_description
+                    sys_updated_on = $vm.sys_updated_on
                 }
+                $noOwners += $noOwner
             }
-        }   
+        }
     }
     return $noOwners
 }
@@ -447,21 +450,26 @@ function Get-CmdbVmDecommisionRequest(){
         [Parameter(Mandatory = $false)][switch] $ReturnAll,
         [Parameter(Mandatory = $false)][switch] $DevCall
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbVmDecommisionRequest -SnowBearerToken $snowBearerToken -VmName $vmName -ReturnAll $returnAll -DevCall $devCall"
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbVmDecommisionRequest -VmName $vmName -ReturnAll $returnAll -DevCall $devCall"
 
     if($devCall){
-        $instance = "desedev.service-now.com" 
+        $instance = "desedev.service-now.com"
     } else {
         $instance = "dese.service-now.com"
-    }    
+    }
 
-    $uri = "https://$($instance)/api/now/table/change_request?sysparm_query=cmdb_ci.name=$($vmName)"
-    $uri = "https://$($instance)/api/now/table/change_request?sysparm_query=cmdb_ci.name=$($vmName)&u_template_name_used=CR-Server Decommission (Virtual)"
+    # Both conditions must be inside sysparm_query, joined with ^ (AND). A bare & makes it a separate URL parameter that the Table API ignores.
+    $query = "cmdb_ci.name=$($vmName)^u_template_name_used=CR-Server Decommission (Virtual)"
+    $uri = "https://$($instance)/api/now/table/change_request?sysparm_query=$([uri]::EscapeDataString($query))"
     $response = (Get-SnowQuery -Uri $uri -SnowBearerToken $snowBearerToken).result
+
+    if($returnAll){
+        return $response
+    }
 
     $requests = @()
     foreach($r in $response){
-        $request = [PSCustomObject]@{	
+        $request = [PSCustomObject]@{
             task_effective_number = $r.task_effective_number
             approval = $r.approval
             due_date = $r.due_date
@@ -469,27 +477,23 @@ function Get-CmdbVmDecommisionRequest(){
             short_description = $r.short_description
             close_code = $r.close_code
             closed_at = $r.closed_at
-            closed_by = if ($null -ne $($r.closed_by.link)){ (Get-SnowQuery -Uri $($r.closed_by.link) -SnowBearerToken $snowBearerToken).result.name  } else { $null }
+            closed_by = if ($null -ne $($r.closed_by.link)){ (Get-SnowQuery -Uri $($r.closed_by.link) -SnowBearerToken $snowBearerToken).result.name } else { $null }
             phase_state = $r.phase_state
             opened_at = $r.opened_at
             work_end = $r.work_end
-            opened_by = if ($null -ne $($r.opened_by.link)){ (Get-SnowQuery -Uri $($r.opened_by.link) -SnowBearerToken $snowBearerToken).result.name  } else { $null }
-            assigned_to = if ($null -ne $($r.assigned_to.link)){ (Get-SnowQuery -Uri $($r.assigned_to.link) -SnowBearerToken $snowBearerToken).result.name  } else { $null }
+            opened_by = if ($null -ne $($r.opened_by.link)){ (Get-SnowQuery -Uri $($r.opened_by.link) -SnowBearerToken $snowBearerToken).result.name } else { $null }
+            assigned_to = if ($null -ne $($r.assigned_to.link)){ (Get-SnowQuery -Uri $($r.assigned_to.link) -SnowBearerToken $snowBearerToken).result.name } else { $null }
         }
         $requests += $request
     }
-    
-    if($returnAll){
-        return $response
-    }
-    if($request.task_effective_number -ne $null){
+
+    if($requests.Count -gt 0){
         return $requests
     }
     else{
         return
     }
 }
-
 
 # Get-CmdbOperationalVms
 function Get-CmdbOperationalVms(){
@@ -498,16 +502,14 @@ function Get-CmdbOperationalVms(){
         [Parameter(Mandatory = $false)][int] $limit = 10000,
         [Parameter(Mandatory = $false)][switch] $DevCall
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVms -SnowBearerToken $snowBearerToken -Limit $limit -DevCall $devCall"
-    
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbOperationalVms -Limit $limit -DevCall $devCall"
+
     if($devCall){
         $vms = Get-CmdbVm -SnowBearerToken $snowBearerToken -Limit $limit -DevCall
     } else {
         $vms = Get-CmdbVm -SnowBearerToken $snowBearerToken -Limit $limit
     }
 
-    
-    
     $operationalVms = $vms | Where-Object {
         $_.life_cycle_stage_status.value -eq 'In Use' -and
         $_.life_cycle_stage.value -eq 'Operational'
@@ -525,19 +527,21 @@ function Get-CmdbVm(){
         [Parameter(Mandatory = $false)][int] $Limit = 10000,
         [Parameter(Mandatory = $false)][switch] $DevCall
     )
-    Write-Host "##[command] ##[FUNCTION] Get-CmdbVm -VmName $vmName -Limit $limit -SnowBearerToken $snowBearerToken -DevCall $devCall" -ForegroundColor Cyan
-    
+    Write-Host "##[command] ##[FUNCTION] Get-CmdbVm -VmName $vmName -Limit $limit -DevCall $devCall" -ForegroundColor Cyan
+
     if($devCall){
-        $instance = "desedev.service-now.com" 
+        $instance = "desedev.service-now.com"
     } else {
         $instance = "dese.service-now.com"
     }
 
+    # No sysparm_display_value on either path, so reference fields always come back as {link, value}
+    # and callers can use .value / .link consistently.
     if($vmName -eq ""){
         $uri = "https://$($instance)/api/now/table/cmdb_ci_server?sysparm_limit=$($limit)"
     }
     else {
-        $uri = "https://$($instance)/api/now/table/cmdb_ci_server?sysparm_query=name=$($vmName)&sysparm_limit=1&sysparm_display_value=true"
+        $uri = "https://$($instance)/api/now/table/cmdb_ci_server?sysparm_query=name=$($vmName)&sysparm_limit=1"
     }
     Write-Host "##[debug] URI = $($uri)"
     $response = Get-SnowQuery -Uri $uri -SnowBearerToken $snowBearerToken
@@ -559,16 +563,21 @@ function Get-SnowToken(){
         -Uri 'https://login.microsoftonline.com/dd0cfd15-4558-4b12-8bad-ea26984fc417/oauth2/v2.0/token' `
         -ContentType 'application/x-www-form-urlencoded' `
         -UseBasicParsing `
-        -body @{
+        -Body @{
             grant_type = "password";
             scope = 'openid email profile';
             response_type = "id_token";
             response_mode = "form_post";
-            client_id = $snowClientID ;
+            client_id = $snowClientID;
             client_secret = $snowAPIKey;
             username = $snowApiUser;
             password = $snowApiUserPassword;
-        } 
+        }
+
+    # Register the token with Azure DevOps so it is masked in all subsequent log output
+    if($env:TF_BUILD){
+        Write-Host "##vso[task.setsecret]$($snowBearerToken.id_token)"
+    }
 
     return $snowBearerToken.id_token
 }
@@ -581,60 +590,58 @@ function Get-PoweredOff_VMs_In_Wild (){
         [Parameter(Mandatory = $true)] $InfobloxCredential,
         [Parameter(Mandatory = $false)] $Domain
     )
-    Write-Host "##[command] ##[FUNCTION] Get-PoweredOff_VMs_In_Wild -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -Domain $domain"
-    
-    $vmObj = get-VmObject
+    Write-Host "##[command] ##[FUNCTION] Get-PoweredOff_VMs_In_Wild -Domain $domain"
+
     $domainobjs = Get-DomainObjs -Domain $domain
     $poweredOff_VMs_In_Wild = @()
 
     foreach($obj in $domainobjs){
         $count = 0
-        $operationalVms = Get-ADComputer -Filter * -Server $($obj.domain) | ?{$_.DistinguishedName -notlike "*$($obj.departedOU)*"}
-        Write-Host "There are $($operationalVms.Count) Operational VMs in $($obj.domain)" -ForegroundColor Cyan        
-    
+        $operationalVms = Get-ADComputer -Filter * -Server $($obj.domain) | Where-Object {$_.DistinguishedName -notlike "*$($obj.departedOU)*"}
+        Write-Host "There are $($operationalVms.Count) Operational VMs in $($obj.domain)" -ForegroundColor Cyan
+
         foreach($vm in $operationalVms){
             $vraMachine = Get-VraMachine -BearerToken $vraBearerToken -VmName $vm.name
             if($vraMachine.powerState -eq 'OFF'){
-                $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
+                $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
                 $poweredOff_VMs_In_Wild += $vmObj
                 $count++
             }
         }
         Write-Host "There are $($count) powered OFF VMs in the operational OUs for $($obj.domain)" -ForegroundColor Yellow
     }
-    return $poweredOff_VMs_In_Wild 
+    return $poweredOff_VMs_In_Wild
 }
 
 # Get-Powered_On_Vms_In_Departed_Ou
-function Get-Powered_On_Vms_In_Departed_Ou (){    
+function Get-Powered_On_Vms_In_Departed_Ou (){
     param(
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $true)] $VraBearerToken,
         [Parameter(Mandatory = $true)] $InfobloxCredential,
         [Parameter(Mandatory = $false)] $Domain
     )
-    Write-Host "##[command] ##[FUNCTION] Get-Powered_On_Vms_In_Departed_Ou -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -Domain $domain"
-    
-    $vmObj = get-VmObject
+    Write-Host "##[command] ##[FUNCTION] Get-Powered_On_Vms_In_Departed_Ou -Domain $domain"
+
     $domainobjs = Get-DomainObjs -Domain $domain
     $powered_On_Vms_In_Departed_Ou = @()
 
-    foreach($obj in $domainobjs){  
-        $count = 0   
+    foreach($obj in $domainobjs){
+        $count = 0
         $departedVms = Get-ADComputer -SearchBase $obj.departedOU -SearchScope Subtree -Filter * -Server $obj.domain -Properties DistinguishedName,Enabled,DNSHostName,LastLogonDate,WhenCreated,OperatingSystem,IPv4Address
         Write-Host "There are $($departedVms.Count) departed VMs in $($obj.domain)" -ForegroundColor Cyan
-        
+
         foreach($vm in $departedVms){
             $vraMachine = Get-VraMachine -BearerToken $vraBearerToken -VmName $vm.name
             if($vraMachine.powerState -eq 'ON'){
-                $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
+                $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
                 $powered_On_Vms_In_Departed_Ou += $vmObj
                 $count++
             }
         }
-        Write-Host "There are $($count) powered on VMs in the departed out for $($obj.domain)" -ForegroundColor Yellow
+        Write-Host "There are $($count) powered on VMs in the departed OU for $($obj.domain)" -ForegroundColor Yellow
     }
-    
+
     return $powered_On_Vms_In_Departed_Ou
 }
 
@@ -646,20 +653,19 @@ function Get-Disabled_VMs_In_Wild (){
         [Parameter(Mandatory = $true)] $InfobloxCredential,
         [Parameter(Mandatory = $false)] $Domain
     )
-    Write-Host "##[command] ##[FUNCTION] Get-Disabled_VMs_In_Wild -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -Domain $domain"
-    
-    $vmObj = Get-VmObject
+    Write-Host "##[command] ##[FUNCTION] Get-Disabled_VMs_In_Wild -Domain $domain"
+
     $domainobjs = Get-DomainObjs -Domain $domain
     $disabled_VMs_In_Wild = @()
 
     foreach($obj in $domainobjs){
         $count = 0
-        $operationalVms = Get-ADComputer -Filter * -Server $($obj.domain) | ?{$_.DistinguishedName -notlike "*$($obj.departedOU)*"}
-        Write-Host "There are $($operationalVms.Count) Operational VMs in $($obj.domain)" -ForegroundColor Cyan        
-    
+        $operationalVms = Get-ADComputer -Filter * -Server $($obj.domain) | Where-Object {$_.DistinguishedName -notlike "*$($obj.departedOU)*"}
+        Write-Host "There are $($operationalVms.Count) Operational VMs in $($obj.domain)" -ForegroundColor Cyan
+
         foreach($vm in $operationalVms){
             if($vm.Enabled -eq $false){
-                $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
+                $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
                 $disabled_VMs_In_Wild += $vmObj
                 $count++
             }
@@ -670,15 +676,15 @@ function Get-Disabled_VMs_In_Wild (){
     return $disabled_VMs_In_Wild
 }
 
-#  Get-Operational_Cmdb_Vms_In_Departed_Ou
-function Get-Operational_Cmdb_Vms_In_Departed_Ou (){    
+# Get-Operational_Cmdb_Vms_In_Departed_Ou
+function Get-Operational_Cmdb_Vms_In_Departed_Ou (){
     param(
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $true)] $VraBearerToken,
         [Parameter(Mandatory = $true)] $InfobloxCredential,
         [Parameter(Mandatory = $false)] $Domain
     )
-    Write-Host "##[command] ##[FUNCTION] Get-Operational_Cmdb_Vms_In_Departed_Ou -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -Domain $domain"
+    Write-Host "##[command] ##[FUNCTION] Get-Operational_Cmdb_Vms_In_Departed_Ou -Domain $domain"
 
     $domainobjs = Get-DomainObjs -Domain $domain
     Write-Host "Getting operational VMs from CMDB" -ForegroundColor Cyan
@@ -686,9 +692,10 @@ function Get-Operational_Cmdb_Vms_In_Departed_Ou (){
     $operational_Cmdb_Vms_In_Departed_Ou = @()
 
     foreach($obj in $domainobjs){
+        $count = 0
         $departedVms = Get-ADComputer -SearchBase $obj.departedOU -SearchScope Subtree -Filter * -Server $obj.domain -Properties DistinguishedName,Enabled,DNSHostName,LastLogonDate,WhenCreated,OperatingSystem,IPv4Address
-        Write-Host "There are $($departedVms.Count) VMs in the departed OU for $($obj.domain)" -ForegroundColor Cyan        
-        
+        Write-Host "There are $($departedVms.Count) VMs in the departed OU for $($obj.domain)" -ForegroundColor Cyan
+
         $operationalDomainVms = @()
         foreach($vm in $operationalSnowVms){
             if($vm.os_domain -eq $obj.domain){
@@ -705,44 +712,43 @@ function Get-Operational_Cmdb_Vms_In_Departed_Ou (){
         }
 
         foreach($vm in $departedOperationalVms){
-            $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential  
+            $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
             $operational_Cmdb_Vms_In_Departed_Ou += $vmObj
             $count++
         }
-        Write-Host "There are $($count) operational VMs according to SNOW in the dearted OU for $($obj.domain)" -ForegroundColor Cyan
+        Write-Host "There are $($count) operational VMs according to SNOW in the departed OU for $($obj.domain)" -ForegroundColor Cyan
     }
     return $operational_Cmdb_Vms_In_Departed_Ou
 }
 
 # Get-Enabled_Vms_In_Departed_Ou
-function Get-Enabled_Vms_In_Departed_Ou (){    
+function Get-Enabled_Vms_In_Departed_Ou (){
     param(
         [Parameter(Mandatory = $true)] $SnowBearerToken,
         [Parameter(Mandatory = $true)] $VraBearerToken,
         [Parameter(Mandatory = $true)] $InfobloxCredential,
         [Parameter(Mandatory = $false)] $Domain
     )
-    Write-Host "##[command] ##[FUNCTION] Get-Enabled_Vms_In_Departed_Ou -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -Domain $domain"
-    
-    $vmObj = get-VmObject
+    Write-Host "##[command] ##[FUNCTION] Get-Enabled_Vms_In_Departed_Ou -Domain $domain"
+
     $domainobjs = Get-DomainObjs -Domain $domain
     $enabled_Vms_In_Departed_Ou = @()
 
-    foreach($obj in $domainobjs){  
-        $count = 0   
+    foreach($obj in $domainobjs){
+        $count = 0
         $departedVms = Get-ADComputer -SearchBase $obj.departedOU -SearchScope Subtree -Filter * -Server $obj.domain -Properties DistinguishedName,Enabled,DNSHostName,LastLogonDate,WhenCreated,OperatingSystem,IPv4Address
         Write-Host "There are $($departedVms.Count) departed VMs in $($obj.domain)" -ForegroundColor Cyan
-        
+
         foreach($vm in $departedVms){
             if($vm.Enabled -eq $true){
-                $vmObj = Populate-VmObj -VmName $vm.name -Vmdomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
+                $vmObj = Populate-VmObj -VmName $vm.name -VmDomain $obj.domain -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential
                 $enabled_Vms_In_Departed_Ou += $vmObj
                 $count++
             }
         }
-        Write-Host "There are $($count) enabeld on VMs in the departed out for $($obj.domain)" -ForegroundColor Yellow
+        Write-Host "There are $($count) enabled VMs in the departed OU for $($obj.domain)" -ForegroundColor Yellow
     }
-    
+
     return $enabled_Vms_In_Departed_Ou
 }
 
@@ -752,46 +758,46 @@ function Get-DomainObjs(){
         [Parameter(Mandatory = $false)] $Domain
     )
     Write-Host "##[command] ##[FUNCTION] Get-DomainObjs -Domain $domain"
-    
+
     $domainobj = @()
-    $domainobj += [pscustomobject]@{ 
+    $domainobj += [pscustomobject]@{
         domain = "application.enet"
         departedOU = 'OU=Computers Departed,DC=application,DC=enet'
     }
-    $domainobj += [pscustomobject]@{ 
+    $domainobj += [pscustomobject]@{
         domain = "construction.enet"
         departedOU = 'OU=Computers Departed,DC=construction,DC=enet'
     }
-    $domainobj += [pscustomobject]@{ 
+    $domainobj += [pscustomobject]@{
         domain = "dev.construction.enet"
         departedOU = 'OU=Computers Departed,DC=dev,DC=construction,DC=enet'
     }
-    $domainobj += [pscustomobject]@{ 
+    $domainobj += [pscustomobject]@{
         domain = "pprod.construction.enet"
         departedOU = 'OU=Computers Departed,DC=pprod,DC=construction,DC=enet'
     }
 
-    if($domain -ne $null){
+    if($null -ne $domain){
         if($domain -eq 'prod'){
-            $domainobj = [pscustomobject]@{ 
+            $domainobj = [pscustomobject]@{
                 domain = "application.enet"
                 departedOU = 'OU=Computers Departed,DC=application,DC=enet'
             }
         }
         if($domain -eq 'construction'){
-            $domainobj = [pscustomobject]@{ 
+            $domainobj = [pscustomobject]@{
                 domain = "construction.enet"
                 departedOU = 'OU=Computers Departed,DC=construction,DC=enet'
             }
         }
         if($domain -eq 'dev'){
-            $domainobj = [pscustomobject]@{ 
+            $domainobj = [pscustomobject]@{
                 domain = "dev.construction.enet"
                 departedOU = 'OU=Computers Departed,DC=dev,DC=construction,DC=enet'
             }
         }
         if($domain -eq 'pprod'){
-            $domainobj = [pscustomobject]@{ 
+            $domainobj = [pscustomobject]@{
                 domain = "pprod.construction.enet"
                 departedOU = 'OU=Computers Departed,DC=pprod,DC=construction,DC=enet'
             }
@@ -809,11 +815,10 @@ function Populate-VmObj (){
         [Parameter(Mandatory = $true)] $VraBearerToken,
         [Parameter(Mandatory = $true)] $InfobloxCredential
     )
-    Write-Host "##[command] ##[FUNCTION] Populate-VmObj -SnowBearerToken $snowBearerToken -VraBearerToken $vraBearerToken -InfobloxCredential $infobloxCredential -VmName $vmName -VmDomain $vmDomain"
-    
-    
-    $vmObj = get-VmObject
-    $adobj = Get-ADComputer $vmName -server $vmDomain -Properties DistinguishedName,Enabled,DNSHostName,LastLogonDate,WhenCreated,OperatingSystem,IPv4Address,PrimaryGroup
+    Write-Host "##[command] ##[FUNCTION] Populate-VmObj -VmName $vmName -VmDomain $vmDomain"
+
+    $vmObj = Get-VmObject
+    $adobj = Get-ADComputer $vmName -Server $vmDomain -Properties DistinguishedName,Enabled,DNSHostName,LastLogonDate,WhenCreated,OperatingSystem,IPv4Address,PrimaryGroup
     $decomRequestObj = Get-CmdbVmDecommisionRequest -VmName $vmName -SnowBearerToken $snowBearerToken
     $infobloxRecord = Get-InfobloxRecord -InfobloxCredential $infobloxCredential -RecordType a -RecordName $adobj.DNSHostName -Silent
     $vraMachine = Get-VraMachine -BearerToken $vraBearerToken -VmName $vmName
@@ -830,57 +835,62 @@ function Populate-VmObj (){
     $vmObj.OperatingSystem = $adobj.OperatingSystem
     $vmObj.IPv4AddressInAD = $adobj.IPv4Address
     $vmObj.PrimaryGroup = $adobj.PrimaryGroup
-                
+
     # Infoblox
     $vmObj.InfoBloxRecordName = $infobloxRecord.name
-    $vmObj.InfoBloxIPaddress= $infobloxRecord.ipv4addrs.ipv4addr
-                
+    $vmObj.InfoBloxIPaddress = $infobloxRecord.ipv4addrs.ipv4addr
+
     # Decom Request
     $vmObj.DecomRequest_task_effective_number = $decomRequestObj.task_effective_number
-    $vmObj.DecomRequest_approval = $decomRequestObj.approval 
-    $vmObj.DecomRequest_short_description = $decomRequestObj.short_description 
+    $vmObj.DecomRequest_approval = $decomRequestObj.approval
+    $vmObj.DecomRequest_short_description = $decomRequestObj.short_description
     $vmObj.DecomRequest_close_code = $decomRequestObj.close_code
-    $vmObj.DecomRequest_closed_at = $decomRequestObj.closed_at 
+    $vmObj.DecomRequest_closed_at = $decomRequestObj.closed_at
     $vmObj.DecomRequest_closed_by = $decomRequestObj.closed_by
     $vmObj.DecomRequest_phase_state = $decomRequestObj.phase_state
     $vmObj.DecomRequest_opened_at = $decomRequestObj.opened_at
     $vmObj.DecomRequest_work_end = $decomRequestObj.work_end
-    $vmObj.DecomRequest_opened_by = $decomRequestObj.opened_by 
-    $vmObj.DecomRequest_assigned_to = $decomRequestObj.assigned_to	
-                        
+    $vmObj.DecomRequest_opened_by = $decomRequestObj.opened_by
+    $vmObj.DecomRequest_assigned_to = $decomRequestObj.assigned_to
+
     # CMDB
     $vmObj.CMDB_name = $cmdbVm.name
-    $vmObj.CMDB_ip_address = $cmdbVm.ip_address	
-    $vmObj.CMDB_fqdn = $cmdbVm.fqdn	
-    $vmObj.CMDB_last_discovered	= $cmdbVm.last_discovered	
+    $vmObj.CMDB_ip_address = $cmdbVm.ip_address
+    $vmObj.CMDB_fqdn = $cmdbVm.fqdn
+    $vmObj.CMDB_last_discovered = $cmdbVm.last_discovered
     $vmObj.CMDB_os = $cmdbVm.os
     $vmObj.CMDB_os_version = $cmdbVm.os_version
     $vmObj.CMDB_life_cycle_stage = $cmdbVm.life_cycle_stage.value
-    $vmObj.CMDB_life_cycle_stage_status	= $cmdbVm.life_cycle_stage_status.value
-    $vmObj.CMDB_managed_by = if ($null -ne $cmdbVm.managed_by.link){ (Get-SnowQuery -Uri $cmdbVm.managed_by.link -SnowBearerToken $snowBearerToken).result.name	 } else { $null }
-    $vmObj.CMDB_u_tags = $cmdbVm.u_tags	
-    $vmObj.CMDB_u_tags_ProjectCode = if($null -ne $cmdbVm.u_tags){ ($cmdbVm.u_tags | Convertfrom-Json).'Project Code/Cost Centre Code' } else { $null }
-    $vmObj.CMDB_u_tags_Environment = if($null -ne $cmdbVm.u_tags){ ($cmdbVm.u_tags | Convertfrom-Json).Environment } else { $null }
-    $vmObj.CMDB_u_tags_OperatingSystem = if($null -ne $cmdbVm.u_tags){ ($cmdbVm.u_tags | Convertfrom-Json).OperatingSystem } else { $null }
-    $vmObj.CMDB_u_tags_ProjectName = if($null -ne $cmdbVm.u_tags){ ($cmdbVm.u_tags | Convertfrom-Json).'Project Name' } else { $null }
-    $vmObj.CMDB_u_tags_Agency = if($null -ne $cmdbVm.u_tags){ ($cmdbVm.u_tags | Convertfrom-Json).Agency } else { $null }
-    $vmObj.CMDB_company = if ($null -ne $cmdbVm.company.link){ (Get-SnowQuery -Uri $cmdbVm.company.link -SnowBearerToken $snowBearerToken).result.name  } else { $null }
+    $vmObj.CMDB_life_cycle_stage_status = $cmdbVm.life_cycle_stage_status.value
+    $vmObj.CMDB_managed_by = if ($null -ne $cmdbVm.managed_by.link){ (Get-SnowQuery -Uri $cmdbVm.managed_by.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
+    $vmObj.CMDB_u_tags = $cmdbVm.u_tags
+
+    $tags = $null
+    if(-not [string]::IsNullOrEmpty($cmdbVm.u_tags)){
+        try { $tags = $cmdbVm.u_tags | ConvertFrom-Json } catch { Write-Host "##[warning] u_tags on $vmName is not valid JSON" }
+    }
+    $vmObj.CMDB_u_tags_ProjectCode = $tags.'Project Code/Cost Centre Code'
+    $vmObj.CMDB_u_tags_Environment = $tags.Environment
+    $vmObj.CMDB_u_tags_OperatingSystem = $tags.OperatingSystem
+    $vmObj.CMDB_u_tags_ProjectName = $tags.'Project Name'
+    $vmObj.CMDB_u_tags_Agency = $tags.Agency
+
+    $vmObj.CMDB_company = if ($null -ne $cmdbVm.company.link){ (Get-SnowQuery -Uri $cmdbVm.company.link -SnowBearerToken $snowBearerToken).result.name } else { $null }
     $vmObj.CMDB_u_function = $cmdbVm.u_function
-    $vmObj.CMDB_comments = $cmdbVm.comments	
-    $vmObj.CMDB_u_purpose = $cmdbVm.u_purpose	
+    $vmObj.CMDB_comments = $cmdbVm.comments
+    $vmObj.CMDB_u_purpose = $cmdbVm.u_purpose
     $vmObj.CMDB_short_description = $cmdbVm.short_description
     $vmObj.CMDB_sys_updated_on = $cmdbVm.sys_updated_on
 
     # Timestamp
     $vmObj.TimeStamp = Get-Date
 
-
-    return $vmObj               	
+    return $vmObj
 }
 
 # Get-VmObject
 function Get-VmObject (){
-    $vmObj = [pscustomobject]@{ 
+    $vmObj = [pscustomobject]@{
         Name = ''
         PowerState = ''
         EnabledInAD = ''
@@ -903,17 +913,17 @@ function Get-VmObject (){
         DecomRequest_opened_at = ''
         DecomRequest_work_end = ''
         DecomRequest_opened_by = ''
-        DecomRequest_assigned_to = ''	
+        DecomRequest_assigned_to = ''
         CMDB_name = ''
-        CMDB_ip_address = ''	
-        CMDB_fqdn = ''	
-        CMDB_last_discovered = ''	
+        CMDB_ip_address = ''
+        CMDB_fqdn = ''
+        CMDB_last_discovered = ''
         CMDB_os = ''
         CMDB_os_version = ''
         CMDB_life_cycle_stage = ''
         CMDB_life_cycle_stage_status = ''
         CMDB_managed_by = ''
-        CMDB_u_tags = ''	
+        CMDB_u_tags = ''
         CMDB_u_tags_ProjectCode = ''
         CMDB_u_tags_Environment = ''
         CMDB_u_tags_OperatingSystem = ''
@@ -921,7 +931,7 @@ function Get-VmObject (){
         CMDB_u_tags_Agency = ''
         CMDB_company = ''
         CMDB_u_function = ''
-        CMDB_comments = ''	
+        CMDB_comments = ''
         CMDB_u_purpose = ''
         CMDB_short_description = ''
         CMDB_sys_updated_on = ''
