@@ -1,32 +1,6 @@
-[cm3745_a@epriapp349 ~]$ df -h /opt/jfrog/xray/var/work /var/tmp
-sudo ls -la /opt/jfrog/xray/var/work/server/updates/v3
-Filesystem                  Size  Used Avail Use% Mounted on
-/dev/mapper/vg_soe-var       19G   17G  2.5G  87% /var
-/dev/mapper/vg_soe-var_tmp  4.0G   61M  4.0G   2% /var/tmp
-total 0
-drwxr-xr-x. 2 xray xray  6 Sep 29 14:27 .
-drwxr-xr-x. 5 xray xray 54 Aug 16  2025 ..
-[cm3745_a@epriapp349 ~]$ curl -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' \
-  -o /var/tmp/onboarding.tar.zst \
-  -w "\nHTTP %{http_code}, %{size_download} bytes, %{time_total}s\n" \
-  "https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwNzQyMjgxLCJpYXQiOjE3OTA2NTU4ODF9.4XaB7xhEjdVwDReWI3Jbj3PDQZA_SI-C-BfzftPVAx8"
-Enter proxy password for user 'enetapp\service_eapautprd':
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl -s -o /dev/null -D - -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' "PASTE_SAME_URL" | grep -iE "^HTTP|location"
 
-HTTP 302, 0 bytes, 0.923266s
-[cm3745_a@epriapp349 ~]$ sha256sum /var/tmp/onboarding.tar.zst
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /var/tmp/onboarding.tar.zst
-[cm3745_a@epriapp349 ~]$
+curl -sIL -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' "PASTE_SAME_URL" | grep -iE "^HTTP|content-length|location"
 
-
-
-
-
-
-
-
-
-
-
+sudo vgs vg_soe
+sudo du -xh --max-depth=2 /var | sort -h | tail -15
