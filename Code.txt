@@ -26,3 +26,6 @@ sudo restorecon -Rv /var/opt/jfrog/xray /var/lib/pgsql
 sudo systemctl start postgresql                     # if moved
 sudo systemctl start xray
 df -h /opt/jfrog/xray/var/work
+
+
+curl -v -x http://proxy.dmz.ige:8080 -U 'DOMAIN\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
