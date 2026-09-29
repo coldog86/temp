@@ -1,17 +1,6 @@
-[cm3745_a@epriapp349 ~]$ curl -s -o /dev/null -D - -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' "https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwNzQyMjgxLCJpYXQiOjE3OTA2NTU4ODF9.4XaB7xhEjdVwDReWI3Jbj3PDQZA_SI-C-BfzftPVAx8" | grep -iE "^HTTP|location"
-
-curl -sIL -x http://proxy.dmz.ige:8080 -U 'enetapp\service_eapautprd' "https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwNzQyMjgxLCJpYXQiOjE3OTA2NTU4ODF9.4XaB7xhEjdVwDReWI3Jbj3PDQZA_SI-C-BfzftPVAx8" | grep -iE "^HTTP|content-length|location"
-Enter proxy password for user 'enetapp\service_eapautprd':
-HTTP/1.0 200 Connection Established
-HTTP/1.1 302 Found
-Location: https://releases-cdn.jfrog.io/filestore/e9/e936b93cb681f4aad70da0d2ed5c20c00fbd34e6?response-content-type=application%2Foctet-stream&response-content-disposition=attachment%3Bfilename%3D%22onboarding_package__1790467214523.tar.zst%22&x-jf-traceId=669ec542b2cd80ab5f564383fd214221&X-Artifactory-repositoryKey=xuc-data-packages&X-Artifactory-projectKey=default&X-Artifactory-artifactPath=v1790467214523__onboarding%2Fonboarding_package__1790467214523.tar.zst&X-Artifactory-username=signed%3Atoken%3Axuc&X-Artifactory-repoType=local&X-Artifactory-packageType=generic&X-Artifactory-originRepositoryKey=xuc-data-packages&X-Artifactory-originProjectKey=default&X-Artifactory-originRepoType=local&X-Artifactory-originPackageType=generic&Expires=1790657530&Signature=XbOorMO-GwMWDmAf-1Ib1ZDOHyejHu8dR0kpunYATXzh7WFOvBHX3yONQTExbaW3mZic2XZS2tDowQcLJyBZ~oYNcoJWTw~ZQ7zHLvQLhgWUnHL4FsX8RjLUXBrp0toRHQHOdHlENNPDzI5y~chtNZbc3q0SKYJkMqTEIuXuH6q7TGHHvlxAED-Xd-fUapdb6ptVeIrnK8G72XLrN1V-jopL8004~-cJtykkdrjt-L-JDNX2Uz279zwkVu2t1Fz7c5RGLmrLzovMkn~dFO6G3GLAk7K6ILeVeJGitRdFTu5tAu1NhOOmhlLVvotqfhY60lWDedh0LrkYsXlNKXwzCw__&Key-Pair-Id=APKAJ6NHFWMVU3M6DPBA
-Enter proxy password for user 'enetapp\service_eapautprd':
-HTTP/1.0 200 Connection Established
-HTTP/1.1 200 OK
-Content-Length: 27714621686
-[cm3745_a@epriapp349 ~]$ sudo vgs vg_soe
-  VG     #PV #LV #SN Attr   VSize   VFree
-  vg_soe   1   9   0 wz--n- <99.00g 15.00g
-[cm3745_a@epriapp349 ~]$ sudo du -xh --max-depth=2 /var | sort -h | tail -15
-
-^C
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT
+df -h /opt/jfrog/xray /opt/jfrog/xray/var
+findmnt -T /opt/jfrog/xray/var
+readlink -f /opt/jfrog/xray/var
+ls -la /opt/jfrog
+sudo pvs; sudo vgs; sudo lvs
