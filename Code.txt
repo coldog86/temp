@@ -1,34 +1,16 @@
-[cm3745_a@epriapp349 ~]$ grep -riE "proxy|10\.12\.11\.92" /opt/jfrog/xray/var/etc/system.yaml
-        ip: 10.12.11.92
-[cm3745_a@epriapp349 ~]$
-[cm3745_a@epriapp349 ~]$
-[cm3745_a@epriapp349 ~]$ sudo cat /proc/$(pgrep -f xray-server | head -1)/environ | tr '\0' '\n' | grep -i proxy
-cat: /proc//environ: No such file or directory
-[cm3745_a@epriapp349 ~]$ nc -zv 10.12.11.92 8080
--bash: nc: command not found
-[cm3745_a@epriapp349 ~]$ curl -v -x http://10.12.11.92:8080 -U 'service_dapautprd:REALPASSWORD' -o /dev/null https://releases.jfrog.io/artifactory/api/system/ping
-*   Trying 10.12.11.92:8080...
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 10.12.11.92 (10.12.11.92) port 8080 (#0)
-* allocate connect buffer!
-* Establish HTTP proxy tunnel to releases.jfrog.io:443
-* Proxy auth using Basic with user 'service_dapautprd'
-> CONNECT releases.jfrog.io:443 HTTP/1.1
-> Host: releases.jfrog.io:443
-> Proxy-Authorization: Basic c2VydmljZV9kYXBhdXRwcmQ6UkVBTFBBU1NXT1JE
-> User-Agent: curl/7.76.1
-> Proxy-Connection: Keep-Alive
->
-< HTTP/1.1 404 Not Found
-< Content-Type: text/plain; charset=utf-8
-< X-Content-Type-Options: nosniff
-< Date: Tue, 29 Sep 2026 04:06:30 GMT
-< Content-Length: 19
-<
-* Received HTTP code 404 from proxy after CONNECT
-* CONNECT phase completed!
-* Closing connection 0
-curl: (56) Received HTTP code 404 from proxy after CONNECT
-[cm3745_a@epriapp349 ~]$
+hostname -I
+sudo ss -tlnp | grep 8080
 
+  sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -i proxy
+
+
+
+timeout 5 bash -c '</dev/tcp/PROXY_HOST/PORT' && echo OPEN || echo CLOSED
+curl -v -x http://PROXY_HOST:PORT -U USER -o /dev/null https://jxray.jfrog.io/api/v1/system/ping
+curl -v -x http://PROXY_HOST:PORT -U USER https://releases.jfrog.io/artifactory/api/system/ping
+
+curl -x http://PROXY_HOST:PORT -U USER -o /tmp/xray-test.bin -w "\nHTTP %{http_code}, %{size_download} bytes, %{time_total}s\n" \
+  https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/[release]/jfrog-cli-linux-amd64/jf
+rm -f /tmp/xray-test.bin
+
+openssl s_client -proxy PROXY_HOST:PORT -connect releases.jfrog.io:443 -showcerts </dev/null 2>/dev/null | awk '/BEGIN/,/END/' > /tmp/chain.pem
