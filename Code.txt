@@ -1,1 +1,1 @@
-sudo grep -iE "decrypt|Downloading|PublicData" /opt/jfrog/xray/var/log/xray-server-service.log | awk '$1 > "2026-09-30T05:19"' | tail -10
+fK8b3_,pB+(0oWuKH3uQ+SQB4-GSNe
