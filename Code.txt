@@ -1,16 +1,103 @@
-PROXY=http://PROXY_HOST:PORT     # from the UI
+PROXY=http://proxy.dmz.ige:8080    # from the UI
 
 # 1. Is the proxy reachable?
 timeout 5 bash -c "</dev/tcp/${PROXY#http://}" 2>/dev/null; H=${PROXY#http://}; timeout 5 bash -c "</dev/tcp/${H%:*}/${H#*:}" && echo OPEN || echo CLOSED
 
 # 2. Exactly as entered in the UI
-curl -v -x $PROXY -U 'USERNAME_AS_IN_UI' https://releases.jfrog.io/artifactory/api/system/ping
+curl -v -x $PROXY -U 'MGTNP\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
 
-curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'DOMAIN\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
-curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'service_dapautprd@domain.fqdn' https://releases.jfrog.io/artifactory/api/system/ping
+curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'MGTNP\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
+curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'service_dapautprd@mgtnp.dis.gov.au' https://releases.jfrog.io/artifactory/api/system/ping
 
-curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'WORKING_USERNAME' https://releases-cdn.jfrog.io/
+curl -s -o /dev/null -w "%{http_code}\n" -x $PROXY -U 'MGTNP\service_dapautprd' https://releases-cdn.jfrog.io/
 
 sudo grep -iE "masterKey" /opt/jfrog/xray/var/etc/system.yaml
 sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -iE "MASTERKEY|JF_SHARED"
 ls -la /opt/jfrog/xray/var/etc/security/
+
+
+
+
+[cm3745_x@dpriapp311 ~]$ PROXY=http://proxy.dmz.ige:8080    # from the UI
+
+# 1. Is the proxy reachable?
+timeout 5 bash -c "</dev/tcp/${PROXY#http://}" 2>/dev/null; H=${PROXY#http://}; timeout 5 bash -c "</dev/tcp/${H%:*}/${H#*:}" && echo OPEN || echo CLOSED
+OPEN
+[cm3745_x@dpriapp311 ~]$ curl -v -x $PROXY -U 'MGTNP\service_dapautprd' https://releases.jfrog.io/artifactory/api/system/ping
+Enter proxy password for user 'MGTNP\service_dapautprd':
+*   Trying 165.12.252.220:8080...
+* Connected to proxy.dmz.ige (165.12.252.220) port 8080 (#0)
+* allocate connect buffer!
+* Establish HTTP proxy tunnel to releases.jfrog.io:443
+* Proxy auth using Basic with user 'MGTNP\service_dapautprd'
+> CONNECT releases.jfrog.io:443 HTTP/1.1
+> Host: releases.jfrog.io:443
+> Proxy-Authorization: Basic TUdUTlBcc2VydmljZV9kYXBhdXRwcmQ6Zks4YjNfLHBCKygwb1d1S0gzdVErU1FCNC1HU05l
+> User-Agent: curl/7.76.1
+> Proxy-Connection: Keep-Alive
+>
+< HTTP/1.0 200 Connection Established
+<
+* Proxy replied 200 to CONNECT request
+* CONNECT phase completed!
+* ALPN, offering h2
+* ALPN, offering http/1.1
+*  CAfile: /etc/pki/tls/certs/ca-bundle.crt
+* TLSv1.0 (OUT), TLS header, Certificate Status (22):
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* CONNECT phase completed!
+* CONNECT phase completed!
+* TLSv1.2 (IN), TLS header, Certificate Status (22):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS header, Finished (20):
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.2 (OUT), TLS header, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=releases.jfrog.io
+*  start date: Sep 29 06:11:21 2026 GMT
+*  expire date: May  4 21:17:55 2027 GMT
+*  subjectAltName: host "releases.jfrog.io" matched cert's "releases.jfrog.io"
+*  issuer: C=AU; ST=ACT; L=Canberra; O=Department of Education Skills and Employment; OU=Internet Gateway; CN=GatewayProxyCA; emailAddress=InternetGatewayMonitoring@dese.gov.au
+*  SSL certificate verify ok.
+* TLSv1.2 (OUT), TLS header, Unknown (23):
+> GET /artifactory/api/system/ping HTTP/1.1
+> Host: releases.jfrog.io
+> User-Agent: curl/7.76.1
+> Accept: */*
+>
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* old SSL session ID is stale, removing
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Via: .
+< Date: Wed, 30 Sep 2026 05:15:06 GMT
+< Connection: Keep-Alive
+< Content-Type: text/plain
+< X-Request-ID: 036862bc143b6a8ea4a00047fd9171ca:0123456789101114:0123456789101114:0
+< X-JFrog-Version: Artifactory/7.171.0 87100900
+< X-Artifactory-Id: 0ecd6e12cbd8d4a204d20f67e9caabdd5bdbeb45
+< Transfer-Encoding: chunked
+< X-Artifactory-Node-Id: releases-artifactory-primary-2
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+<
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* TLSv1.2 (IN), TLS header, Unknown (23):
+* Connection #0 to host proxy.dmz.ige left intact
+OK[cm3745_x@dpriapp311 ~]$
