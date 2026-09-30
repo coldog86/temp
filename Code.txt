@@ -1,14 +1,1 @@
-[cm3745_x@dpriapp311 ~]$ date -u
-sudo grep -iE "decrypt|Downloading|PublicData" /opt/jfrog/xray/var/log/xray-server-service.log | tail -10
-Wed 30 Sep 2026 05:16:25 UTC
-2026-09-30T04:00:00.020Z [jfxr ] [INFO ] [b3db6d30a3672fb2] [updater:854                   ] [MainServer                      ] Skipping scheduled PublicData updates, onboarding was not completed
-2026-09-30T05:00:00.016Z [jfxr ] [INFO ] [b3db6d30a3672fb2] [updater:854                   ] [MainServer                      ] Skipping scheduled PublicData updates, onboarding was not completed
-2026-09-30T05:08:58.707Z [jfxr ] [INFO ] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [updater:512                   ] [ui/updates/start                ] Starting online PublicData updates process
-2026-09-30T05:08:58.714Z [jfxr ] [INFO ] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [csv_updates_executor:81       ] [ui/updates/start                ] Checking for PublicData updates from https://jxray.jfrog.io/api/v3/updates/onboarding
-2026-09-30T05:08:59.729Z [jfxr ] [INFO ] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [csv_updates_executor:120      ] [ui/updates/start                ] Received PublicData updates info &{Files:[{DownloadURL:https://releases.jfrog.io/artifactory/xuc-data-packages/v1790467214523__onboarding/onboarding_package__1790467214523.tar.zst?sig=eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0b2tlbjp4dWMiLCJ1aS5yZXF1ZXN0IjoiZmFsc2UiLCJzdW0iOiIzYzc0NDhhYmM3NDQyYzZlMTZiYzU1YTVkZjhmNWZkMjIyY2M1ODkxZWEyY2Q3N2M0NzhmMmJlYzc1N2YyZmQ4IiwiZXhwIjoxNzkwODMxMzQwLCJpYXQiOjE3OTA3NDQ5NDB9.ddwGcuEFDtcyR1ZWYWUcRseyNA2YdOvpZMhecnfic3o DownloadedFile:/opt/jfrog/xray/var/work/server/updates/v3/1790467214523_onboarding__onboarding_package__1790467214523.tar.zst IsDeletion:false IsPremium:false Sha256:a47e20015268b5021bc2fbe14fd9389bcf6a8e2da4fc67303c8a69efa3d33022}] Timestamp:1790467214523 IsOnboarding:true}
-2026-09-30T05:08:59.731Z [jfxr ] [INFO ] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [updater:198                   ] [ui/updates/start                ] Cleaning up old downloaded PublicData updates files if needed (keepOfflineMainFile false)
-2026-09-30T05:08:59.731Z [jfxr ] [INFO ] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [csv_updates_executor:130      ] [ui/updates/start                ] Downloading 1 PublicData update files
-2026-09-30T05:08:59.731Z [jfxr ] [ERROR] [                ] [http:101                      ] [BackgroundContext               ] Failed to get proxy configuration: Failed to decrypt proxy user password
-2026-09-30T05:11:59.735Z [jfxr ] [ERROR] [ef0ba7181b0d5aa5f87a6e13ca2091f6] [updater:1109                  ] [ui/updates/start                ] Failed to download online PublicData updates
-Caused by: Failed to download PublicData updates file after 3 retries
-[cm3745_x@dpriapp311 ~]$
+   sudo grep -iE "decrypt|Downloading|PublicData" /opt/jfrog/xray/var/log/xray-server-service.log | awk '$1 > "2026-09-30T05:17"' | tail -10
