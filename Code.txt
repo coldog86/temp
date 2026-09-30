@@ -1,3 +1,15 @@
-  sudo grep -iE "masterKey" /opt/jfrog/xray/var/etc/system.yaml
+[cm3745_x@dpriapp311 ~]$   sudo grep -iE "masterKey" /opt/jfrog/xray/var/etc/system.yaml
   sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -iE "MASTERKEY|JF_SHARED"
   ls -la /opt/jfrog/xray/var/etc/security/
+    #masterKeyFile: "<For example: JFROG_HOME/xray/var/etc/security/master.key>"
+cat: /proc/0/environ: No such file or directory
+total 12
+drwxr-xr-x.  3 xray xray   52 Aug 11 14:28 .
+drwxr-xr-x. 12 xray xray 4096 Sep 30 15:19 ..
+-rw-r--r--.  1 xray xray   99 Aug 11 14:29 join.key
+drwxr-x---.  3 xray xray   21 Aug 11 14:28 keys
+-rw-r-----.  1 xray xray   64 Aug 11 14:28 master.key
+[cm3745_x@dpriapp311 ~]$
+
+
+
