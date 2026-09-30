@@ -1,4 +1,416 @@
-LOG=/opt/jfrog/xray/var/log/xray-server-service.log
-RID=$(sudo grep "Triggering db sync" $LOG | tail -1 | grep -oP '\[\K[0-9a-f]{32}(?=\])')
-echo "Request: $RID"; sudo grep "$RID" $LOG
-sudo grep -iE "decrypt|proxy" $LOG | tail -5
+Artifactory registered as local PowerShell repository
+For additional modules or issues contact the Automation Team
+PS C:\Users\CM3745_A> E:\Scripts\setUp.ps1
+WARNING: The names of some imported commands from the module 'CommonModule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run th
+e Import-Module command again with the Verbose parameter. For a list of approved verbs, type Get-Verb.
+##[command] ##[FUNCTION] Ignore-SelfSignedCerts
+##[debug] Adding TrustAllCertsPolicy type.
+TrustAllCertsPolicy type added.
+WARNING: The names of some imported commands from the module 'InfoBloxmodules' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a 
+list of approved verbs, type Get-Verb.
+##[command] ##[FUNCTION] Ignore-SelfSignedCerts
+##[debug] Adding TrustAllCertsPolicy type.
+TrustAllCertsPolicy type added.
+WARNING: The names of some imported commands from the module 'F5module' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a list of
+ approved verbs, type Get-Verb.
+WARNING: The names of some imported commands from the module 'VRAmodule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a list o
+f approved verbs, type Get-Verb.
+WARNING: The names of some imported commands from the module 'AirlockModule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a li
+st of approved verbs, type Get-Verb.
+WARNING: The names of some imported commands from the module 'DevOpsModule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a lis
+t of approved verbs, type Get-Verb.
+Commvault module imported
+WARNING: The names of some imported commands from the module 'ArtifactoryModule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For 
+a list of approved verbs, type Get-Verb.
+WARNING: The names of some imported commands from the module 'SnowModule' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a list 
+of approved verbs, type Get-Verb.
+##[command] ##[FUNCTION] Decode-Text -EncodedText SABzAG8AdgA3ACgARQBTAHMATABAAHcATAA4AEgAJQA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText UAAwAF8AawB5ADQAbQAuAGoAewAzAEgAOABXAD8ATwAjAEsAOgB2ADYATQA4AE4AawBYAGQAegBiACEA
+##[command] ##[FUNCTION] Decode-Text -EncodedText YgA2AGUANwA5AGIAYgBlADUAMAA0ADYAMAA0ADUANgA2ADAAZQA4ADkAYwAxAGQAMQAzAGUAMwA4AGQANABiADQAMgBkADcAMgAzAGIAYQAxAGQAOAAzAGIAYgA1ADMAZQBlAGMAZQAyADIAZgAyAGEAMwAyADcAYQA2ADEANQA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText YwBtAFYAbQBkAEcAdAB1AE8AagBBAHgATwBqAEUAMwBPAFQAYwAyAE0AegBjAHgATQBEAGcANgBPAEUAcAB5AE0AVQBwAFUAZABUAEIAeQBNADIANQBsAE4AMgBZAHoAUQAwAHQANABaAEUAbABCAFUAMwBKAHoAVABIAFoAYQA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText YwBtAFYAbQBkAEcAdAB1AE8AagBBAHgATwBqAEUAMwBPAFQAVQB3AE4AagBJAHkATgB6AFUANgBSADAAaABzAFkAbQB4AHkAYQBWAHAARABXAEYAWgBCAGQAawB0AEUAYgBUAGgASwBiAFcAWgBPAGQAbgBjADAAVgBrAGQAVAA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText aQBDAGIAOABRAH4AaABnAFEAawB1AH4AUABYAEQAdwBwAEcAMwB3AE0AYgAzAG8AZAB6AE0AdQBDAFcAUgAwAHcARAA4AGIANgBhAFkANgA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText ZgBhADUAOABRAH4AQQBJADQAMgA1AFgAMgBxAHUAdABUADYAfgBLAEkANgBuAEMANwB+ADgAbQB5AGwAUQBFAFQAeQA3AE4ANABiADcAZgA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText KgBoADcAUABfAG8AUwBUAHIAawB+AHsAMwA1AFAAIwBqAGQAeAB3ADkAdABRAH4AZgByADEANwB9ACwA
+##[command] ##[FUNCTION] Decode-Text -EncodedText ZABBAC0AOABRAH4AUgBTAGwAfgBGAFgAYwB3AHQASwAuAGIAcwBmAE0AYgBSAHgAcQBWAEYAMABTAHYAYgBpADUATAAwAGMAbABjADMARwA=
+##[command] ParameterSetName = Direct
+##[command] ##[FUNCTION] Get-OAuthToken -TenantId dd0cfd15-4558-4b12-8bad-ea26984fc417 -AppId 2ce5409d-d9d4-4935-87f0-b1e6e889674b -Secret dA-8****
+##[debug] Not using proxy credentials
+##vso[task.setvariable variable=OAuthToken;isoutput=true;]eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImRndlNEdks4QTVLeUt5cHB3MWRBd1RYRDNDQSIsImtpZCI6ImRndlNEdks4QTVLeUt5cHB3MWRBd1RYRDNDQSJ9.eyJhdWQiOiI0OTliODRhYy0xMzIxLTQyN2YtYWExNy0yNjdjYTY5NzU3OTgiLCJpc3M
+iOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9kZDBjZmQxNS00NTU4LTRiMTItOGJhZC1lYTI2OTg0ZmM0MTcvIiwiaWF0IjoxNzkwNzI4MjY0LCJuYmYiOjE3OTA3MjgyNjQsImV4cCI6MTc5MDczMjE2NCwiYWlvIjoiQVNRQTIvOGVBQUFBUHZnY3hnakZtMnZ5QXZBU01idWZXWVcyM1BjRFkwU2N4NC9EMWdrbnl1MD0iLCJhcHBpZCI6IjJjZ
+TU0MDlkLWQ5ZDQtNDkzNS04N2YwLWIxZTZlODg5Njc0YiIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0L2RkMGNmZDE1LTQ1NTgtNGIxMi04YmFkLWVhMjY5ODRmYzQxNy8iLCJpZHR5cCI6ImFwcCIsIm9pZCI6IjVlNGZlNDFhLTI2ZmMtNDMxNC05ZTllLTdhMmYwYTE1ZGQ0OSIsInJoIjoiMS5BVUVBRmY
+wTTNWaEZFa3VMcmVvbW1FX0VGNnlFbTBraEUzOUNxaGNtZkthWFY1Z0FBQUJCQUEuIiwic3ViIjoiNWU0ZmU0MWEtMjZmYy00MzE0LTllOWUtN2EyZjBhMTVkZDQ5IiwidGlkIjoiZGQwY2ZkMTUtNDU1OC00YjEyLThiYWQtZWEyNjk4NGZjNDE3IiwidXRpIjoiWFdTNm14MzFka2VsLVZraExoeTZBQSIsInZlciI6IjEuMCIsInhtc19hY3RfZ
+mN0IjoiMyA5IiwieG1zX2F1ZF9ndWlkIjoiNDk5Yjg0YWMtMTMyMS00MjdmLWFhMTctMjY3Y2E2OTc1Nzk4IiwieG1zX2Z0ZCI6InpKSGxOWGZQMUNIbmFIWUhZQ3lpeTBFZTc3RVdKcDRTT0NDeWU0VXlIOUlCWVhWemRISmhiR2xoWldGemRDMWtjMjF6IiwieG1zX2lkcmVsIjoiNyAxOCIsInhtc19yZCI6IjAuQVVrQXR2OEtCUWdDRWdGQkV
+oUUlCeElReVEyVTRabHhLVU9lc05ieERieWpIaElVQ0FrU0VNa2UtblVUN0FWS21tclNEV3NpazlJU0ZBZ0xFaEROVGdydG5LMFdzNnhNUTRqdnBfN0ciLCJ4bXNfc3ViX2ZjdCI6IjkgMyJ9.I-rcR5vDzOL2yz4g1TYVGyhimjSu9mLRdSS43eweUxR8iTWBv4pdcnWehkVzNT9wa6YU1vCAg4ErNQ7Vfu8PJRuC5htdVJCOPAHa7qzeJ71arM0X
+Alv8usZSRATlNHtRc8DSgODj9zU2yoRolDaOQ_7ib_BJl7M8p3H4iy1fDcnK3_PIkFweYr4nXgyI-d9VoHzwbqyActSw-0v3GSwchX1AnouPGYIl1qp9BMXfiRipbFPHGz6IRAgdKUyj4pBeZYDboMlGCxTRQruL3cIoy-A2irdJc27pRHd-Q3W-Et5KkYueLCTqRkhpAclAqm_UORg88FLNohBQ2bCgz0R5qw
+##[command] ##[FUNCTION] Decode-Text -EncodedText dwBzAGUAaAB1ADYATgAqADcAWQBVACoAOABkAHIA
+##[command] ##[FUNCTION] Get-VraToken -Username Svc_Devops_aria -Password  wseh  -BaseUrl https://hpmivra.hce.dis.gov.au
+##[debug] Token = eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjE1MDcwNzkwODY4ODQ1OTA3NzQ3In0.eyJpc3MiOiJodHRwOi8vaWRlbnRpdHktc2VydmljZS5wcmVsdWRlLnN2Yy5jbHVzdGVyLmxvY2FsOjgwMDAiLCJpYXQiOjE3OTA3Mjg1NjUsImV4cCI6MTc5MDc1NzM2NSwianRpIjoiNWM1NWVlYjMtNGQ3MC00NzAx
+LWJlZjYtZDNhNmUwNzg5YzIzIiwiY29udGV4dCI6Ilt7XCJtdGRcIjpcInVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDphYzpjbGFzc2VzOlBhc3N3b3JkUHJvdGVjdGVkVHJhbnNwb3J0XCIsXCJpYXRcIjoxNzkwNzI4NTY1LFwiaWRcIjoxNX1dIiwiYXpwIjoicHJlbHVkZS11c2VyLTFGY1R0RW9naTIiLCJzdWIiOiJoY2UuZGlzLmdvdi
+5hdTo4YTgwOGRiYi00ZjFlLTQzNTktOTg5Ny00MmNmNzNjY2QwY2QiLCJkb21haW4iOiJoY2UuZGlzLmdvdi5hdSIsInVzZXJuYW1lIjoic3ZjX2Rldm9wc19hcmlhIiwicGVybXMiOlsiY3NwOm9yZ19tZW1iZXIiLCJleHRlcm5hbC83YmE4YmE5Mi00ZjAyLTQ2OTctYTExNS0xYmNjYzdjMTA2OWIvYXV0b21hdGlvbnNlcnZpY2U6dXNlciIs
+ImV4dGVybmFsLzg4YzJhZDYxLTUyNjItNGNmNS1hZjZkLTQyNTI1YjU4MGVkNy9jYXRhbG9nOnVzZXIiLCJleHRlcm5hbC8zNzE2ZTRjYS1mM2UzLTRiNGMtYjBmYS0wNmY4Y2FlZmViMjAvb3JjaGVzdHJhdGlvbjp2aWV3ZXIiLCJleHRlcm5hbC9lMzU3MjFhMC0xZGZhLTQ5ZGYtOTI5OC0xNDEzMGJiMDEyMzIvQ29kZVN0cmVhbTpkZXZlbG
+9wZXIiLCJleHRlcm5hbC8zNzE2ZTRjYS1mM2UzLTRiNGMtYjBmYS0wNmY4Y2FlZmViMjAvb3JjaGVzdHJhdGlvbjphZG1pbiIsImV4dGVybmFsLzM3MTZlNGNhLWYzZTMtNGI0Yy1iMGZhLTA2ZjhjYWVmZWIyMC9vcmNoZXN0cmF0aW9uOmRlc2lnbmVyIiwiZXh0ZXJuYWwvZTM1NzIxYTAtMWRmYS00OWRmLTkyOTgtMTQxMzBiYjAxMjMyL0Nv
+ZGVTdHJlYW06ZXhlY3V0b3IiLCJleHRlcm5hbC84OGMyYWQ2MS01MjYyLTRjZjUtYWY2ZC00MjUyNWI1ODBlZDcvY2F0YWxvZzp2aWV3ZXIiLCJleHRlcm5hbC9lZTRlYmQ0Ny1jNzNjLTRlZDQtYTk5Mi04MThiNjgxYmU0YjAvc2FsdHN0YWNrOnVzZXIiXSwiY29udGV4dF9uYW1lIjoiZWZiYWE5YjUtYThlZC00YzEyLTgyYjItY2UwMjc1Mz
+A1MGZhIiwiYWNjdCI6InN2Y19kZXZvcHNfYXJpYSJ9.ZoljHYYdCcc_rPhhEi5htJquTu6C7UjimgqQf_SPeO8y9ntLmnLXb8LtdelsddqbTuGK6WhqUk7uXp9TlvaGjJpB0PA0EBpTt-cc3qWNQuGZVhMih9dUPYt1r1LRu_qMlp7hSByjgmFDY_3rJyWvR0gdeWzobk7DEe9Sy7wgh5Ffmmo-I-iYCfgzfaQ86Xeo_-TzYfzbiU5rXgHQVAZHiRO
+NJDuTy9GNBWmrLV_sOET1Iqyezf2RlVYo8thaZd3wVkt7_tTWGAVaf0RauRaY87OfOhnGkmpO-4i1jZlurx-VESuDvDxUD9AqonForvad9karO_yjBV4sloFdAD8Piw
+##[command] ##[FUNCTION] Decode-Text -EncodedText VwBhAH0AagArAFAAXwB1ACgAIQBTAGIAdAA1AHkAQQBpAHoATAByAGUAbgBkAE8ANQBOAGEAYgAxAFoA
+token = 
+##[command] ##[FUNCTION] Decode-Text -EncodedText ZgBkAGUAMAA0ADYANAA2ADAANwBiADYANAAxADIAOABiAGQANAA2AGEAZAA3ADQAMQA1AGQAOAA1ADEANABlAA==
+##[command] ##[FUNCTION] Decode-Text -EncodedText XgB5AEwAaAB1AHIAZQBAACgA
+##[command] ##[FUNCTION] Decode-Text -EncodedText ZABBAC0AOABRAH4AUgBTAGwAfgBGAFgAYwB3AHQASwAuAGIAcwBmAE0AYgBSAHgAcQBWAEYAMABTAHYAYgBpADUATAAwAGMAbABjADMARwA=
+##[command] ##[FUNCTION] Decode-Text -EncodedText QQA4ADAARwBBAHQAcABQAE8AOQBDAE8ASwB2ADQASABsAHAARwBsAFQASgBlAHUAdABlAGcAdgA0AEEAdgBYAA==
+##[command] ##[FUNCTION] Ignore-SelfSignedCerts
+##[debug] Adding TrustAllCertsPolicy type.
+TrustAllCertsPolicy type added.
+Getting modules from dev branch
+##[command] ##[FUNCTION] Decode-Text -EncodedText ZABBAC0AOABRAH4AUgBTAGwAfgBGAFgAYwB3AHQASwAuAGIAcwBmAE0AYgBSAHgAcQBWAEYAMABTAHYAYgBpADUATAAwAGMAbABjADMARwA=
+##[debug] Signing E:\Scripts\Modules\AirlockModule.psm1
+
+
+    Directory: E:\Scripts\Modules
+
+
+SignerCertificate                         Status                                                                                                      Path                                                                                                       
+-----------------                         ------                                                                                                      ----                                                                                                       
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       AirlockModule.psm1                                                                                         
+Downloaded: E:\Scripts\Modules\AirlockModule.psm1
+Imported: E:\Scripts\Modules\AirlockModule.psm1
+##[debug] Signing E:\Scripts\Modules\ArtifactoryModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       ArtifactoryModule.psm1                                                                                     
+Downloaded: E:\Scripts\Modules\ArtifactoryModule.psm1
+Imported: E:\Scripts\Modules\ArtifactoryModule.psm1
+##[debug] Signing E:\Scripts\Modules\ChocoModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       ChocoModule.psm1                                                                                           
+Downloaded: E:\Scripts\Modules\ChocoModule.psm1
+Imported: E:\Scripts\Modules\ChocoModule.psm1
+##[debug] Signing E:\Scripts\Modules\CommVaultModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       CommVaultModule.psm1                                                                                       
+Downloaded: E:\Scripts\Modules\CommVaultModule.psm1
+Commvault module imported
+Imported: E:\Scripts\Modules\CommVaultModule.psm1
+##[debug] Signing E:\Scripts\Modules\CommonModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       CommonModule.psm1                                                                                          
+Downloaded: E:\Scripts\Modules\CommonModule.psm1
+Imported: E:\Scripts\Modules\CommonModule.psm1
+##[debug] Signing E:\Scripts\Modules\DevOpsModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       DevOpsModule.psm1                                                                                          
+Downloaded: E:\Scripts\Modules\DevOpsModule.psm1
+Imported: E:\Scripts\Modules\DevOpsModule.psm1
+##[debug] Signing E:\Scripts\Modules\F5module.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       F5module.psm1                                                                                              
+Downloaded: E:\Scripts\Modules\F5module.psm1
+##[command] ##[FUNCTION] Ignore-SelfSignedCerts
+##[debug] Adding TrustAllCertsPolicy type.
+TrustAllCertsPolicy type added.
+Imported: E:\Scripts\Modules\F5module.psm1
+##[debug] Signing E:\Scripts\Modules\InfoBloxmodules.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       InfoBloxmodules.psm1                                                                                       
+Downloaded: E:\Scripts\Modules\InfoBloxmodules.psm1
+##[command] ##[FUNCTION] Ignore-SelfSignedCerts
+##[debug] Adding TrustAllCertsPolicy type.
+TrustAllCertsPolicy type added.
+Imported: E:\Scripts\Modules\InfoBloxmodules.psm1
+##[debug] Signing E:\Scripts\Modules\SNOWmodule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       SNOWmodule.psm1                                                                                            
+Downloaded: E:\Scripts\Modules\SNOWmodule.psm1
+Imported: E:\Scripts\Modules\SNOWmodule.psm1
+##[debug] Signing E:\Scripts\Modules\TenableModule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       TenableModule.psm1                                                                                         
+Downloaded: E:\Scripts\Modules\TenableModule.psm1
+Imported: E:\Scripts\Modules\TenableModule.psm1
+##[debug] Signing E:\Scripts\Modules\VRAmodule.psm1
+68E77FDD3F771981899967ADB2E98988537DBCD2  Valid                                                                                                       VRAmodule.psm1                                                                                             
+Downloaded: E:\Scripts\Modules\VRAmodule.psm1
+Imported: E:\Scripts\Modules\VRAmodule.psm1
+
+
+
+PS C:\Users\CM3745_A> 
+$vmName = 'EPRTAPP201SA'
+Get-VraDeployment -BaseUrl $vraBaseUrl -BearerToken $vraBearerToken -VmName $vmName
+##[command] ##[FUNCTION] Get-VraDeployment -BaseUrl https://hpmivra.hce.dis.gov.au -BearerToken  eyJ0eXAiOi  -VmName EPRTAPP201SA -Silent False
+##[debug] URI = https://hpmivra.hce.dis.gov.au/deployment/api/deployments?search=EPRTAPP201SA
+##[section] Deployment for EPRTAPP201SA,EPRTAPP201SB,EPRTAPP201SC,EPRTAPP201SD found (ID = 92028571-996d-42c3-99bd-0dbc92caf832)
+
+
+id                   : 92028571-996d-42c3-99bd-0dbc92caf832
+name                 : EPRTAPP201SA,EPRTAPP201SB,EPRTAPP201SC,EPRTAPP201SD
+description          : Stephen.York@dewr.gov.au RITM0538149
+orgId                : efbaa9b5-a8ed-4c12-82b2-ce02753050fa
+catalogItemId        : cf2e13a7-0bb8-3e65-8abd-304d40e23c16
+catalogItemVersion   : 2.2.3
+blueprintId          : fce67c3d-2d39-4efd-90c3-3f7d63e2ce11
+blueprintVersion     : 2.2.3
+iconId               : ad92c8bf-5b0c-3e8c-8a73-78317da11ae8
+createdAt            : 2026-03-04T03:53:47.823784Z
+createdBy            : svc_snow_vra
+ownedBy              : svc_snow_vra
+ownerType            : USER
+lastUpdatedAt        : 2026-09-23T02:37:26.521319Z
+lastUpdatedBy        : svc_devops_aria
+leaseGracePeriodDays : 1
+inputs               : @{SQLAG=False; domain=application.enet; flavor=Type 3 - 4 CPU, 16GB RAM; cluster=True; crossDC=True; zoneEnv=EDC; function=Application Server (APP); location=Primary; vmPrefix=EPRTAPP; envDisplay=PROD; serverName=EDU-ab10h; 
+                       agencyInput=EDU - Department of Education; clusterName=none; serverCount=4; SQLInstances=0; displayOsTag=2022; extrastorage=50; envConstraint=EDCProduction; v1datastorage=0; v1logsstorage=0; v2datastorage=0; v2logsstorage=0; 
+                       deploymentName=EDU-ab10h; envServerIdent=PR; constraintDCTag=Primary,Secondary,Primary,Secondary; constraintOsTag=2022; existingCluster=False; hostingPlatform=On-premises; operatingSystem=Windows Server 2022 Standard; 
+                       v1backupstorage=0; v1tempdbstorage=0; v2backupstorage=0; v2tempdbstorage=0; agencyDisplayTag=EDUCATION; agencyServerIdent=T; hostingDisplayTag=HCE; functionDisplayTag=Application Tier Hosting; hostingServerIdent=HCE; 
+                       agencyConstraintTag=EDU; functionServerIdent=APP; hostingConstraintTag=HCE; functionConstraintTag=appback; servicenow_information=}
+projectId            : a233d007-7d52-4883-91ec-2cb21d5821d7
+status               : CREATE_SUCCESSFUL
+
+
+
+
+PS C:\Users\CM3745_A> 
+$vmName = 'EPRTAPP201SA'
+$deployment = Get-VraDeployment -BaseUrl $vraBaseUrl -BearerToken $vraBearerToken -VmName $vmName
+
+$resources = Get-VraDeploymentResources -BaseUrl $vraBaseUrl -BearerToken $vraBearerToken -Deployment $deployment 
+##[command] ##[FUNCTION] Get-VraDeployment -BaseUrl https://hpmivra.hce.dis.gov.au -BearerToken  eyJ0eXAiOi  -VmName EPRTAPP201SA -Silent False
+##[debug] URI = https://hpmivra.hce.dis.gov.au/deployment/api/deployments?search=EPRTAPP201SA
+##[section] Deployment for EPRTAPP201SA,EPRTAPP201SB,EPRTAPP201SC,EPRTAPP201SD found (ID = 92028571-996d-42c3-99bd-0dbc92caf832)
+##[command] ##[FUNCTION] Get-VraDeploymentResources -BaseUrl https://hpmivra.hce.dis.gov.au -BearerToken  eyJ0eXAiOi  -Deployment 92028571-996d-42c3-99bd-0dbc92caf832
+##[debug] Requesting resources related to EPRTAPP201SA,EPRTAPP201SB,EPRTAPP201SC,EPRTAPP201SD
+##[section] Resources = Cloud_Machine[0] Cloud_Machine[1] Cloud_Machine[2] Cloud_Machine[3] Cloud_Private_Primary[0] Cloud_Private_Secondary[0] Cloud_Public_Primary[0] Cloud_Public_Secondary[0] Cloud_SaltStack Cloud_Volume_EDrive[0] Cloud_Volume_EDrive[1] Cl
+oud_Volume_EDrive[2] Cloud_Volume_EDrive[3]
+
+PS C:\Users\CM3745_A> $resources
+
+
+id         : 1b5cfe36-32df-4941-afda-e9f31431a5b6
+name       : Cloud_Machine[0]
+type       : Cloud.Machine
+properties : @{resourceId=1b5cfe36-32df-4941-afda-e9f31431a5b6; saltStackMasterId=saltstack_enterprise_installer; zone_overlapping_migrated=true; saltStackMinionId=EPRTAPP201SA; migrationMessage=; constraints=System.Object[]; powerState=ON; 
+             environmentName=On premise; countIndex=0; hasSnapshots=false; computeHostType=ClusterComputeResource; id=/resources/compute/1b5cfe36-32df-4941-afda-e9f31431a5b6; cpuCount=4; totalMemoryMB=16384; endpointType=vsphere; tags=System.Object[]; 
+             saltStackAssociatedResourceName=Cloud_SaltStack; resourceLink=/resources/compute/1b5cfe36-32df-4941-afda-e9f31431a5b6; hostName=EPRTAPP201SA.application.enet; cloudConfig=<powershell>
+             New-NetFirewallRule -Name "SMB445" -DisplayName "SMB445" -Protocol TCP -LocalPort 445
+             </powershell>
+             ; networks=System.Object[]; saltStackAssociatedResourceId=f12f9b9b-b8b8-490a-9357-c0245d03d5d0; resourcePool=/resources/pools/46a4133709134e75-7f703c5265a63d87; componentType=Cloud.vSphere.Machine; address=10.12.61.83; 
+             datastoreName=int-fdc-ds-prd4-vsan01; coreCount=4; snapshotCount=0; saltEnvironment=windows; resource_id=500f2861-46f9-8e99-3f6b-947b77da4175; accounts=System.Object[]; flavorMappingName=Type 3 - 4 CPU, 16GB RAM; 
+             vmFolderPath=[int-fdc-ds-prd4-vsan01] 39aea769-e098-ced9-5cdf-6c92cfcb4a84; customizationSpec=Windows; subscriptions={"run_hightstate":true,"f5_run_workflow":false,"saltEnvironment":"main","assign_server_name":true,"f5_run_workflow_dual":true,"
+             servicenow_create_item":true,"salt_deployed_machine_state_apply":false,"salt_create_server_configuration_file":true}; moref=VirtualMachine:vm-378030; resourceDescLink=/resources/compute-descriptions/b7c82bdd-17a3-464c-8168-6d26d96d158e; 
+             project=a233d007-7d52-4883-91ec-2cb21d5821d7; Infoblox.IPAM.Network.enableDns=true; zone=int-fdc-hce-prd-cl04; migrationStatus=SUCCESS; memoryGB=16; isSimulate=false; image=prod-windows-2022; count=4; resourceName=EPRTAPP201SA; 
+             cloneFromImage=vcfa_template_central_library / Windows2022_Latest; flavor=Type 3 - 4 CPU, 16GB RAM; softwareName=Microsoft Windows Server 2022 (64-bit); name=EDU-ab10h; region=internal-protected-fdc; neglectPowerOffVms=false; 
+             attachedDisks=System.Object[]; storage=; minionId=EPRTAPP201SA; areVMActionsDisabled=false; providerId=500f2861-46f9-8e99-3f6b-947b77da4175; osType=WINDOWS; instanceUUID=500f2861-46f9-8e99-3f6b-947b77da4175; 
+             Infoblox.IPAM.createFixedAddress=true; endpointId=473338b5-1044-41dd-bbba-87e3fff1f8be; externalId=500f2861-46f9-8e99-3f6b-947b77da4175; datacenter=Datacenter:datacenter-3; saltStackHasAssociatedResource=true; 
+             Infoblox.IPAM.createAddressRecord=true; primaryMAC=00:50:56:8f:1e:5b; masterId=saltstack_enterprise_installer; computeHostRef=ClusterComputeResource:domain-c252423; iamInstanceProfileName=TSG-SSM-Managed; remoteAccess=; 
+             account=hpmivmc310.hce.dis.gov.au; vcUuid=556fce33-3d0d-4c83-9bb3-d9b0133c50c8}
+createdAt  : 2026-03-04T03:54:28.962545Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+dependsOn  : {Cloud_Public_Primary[0], Cloud_Private_Primary[0], Cloud_Volume_EDrive[0]}
+state      : OK
+
+id         : 9a10aa24-6772-42ea-a24c-47989acae5c9
+name       : Cloud_Machine[1]
+type       : Cloud.Machine
+properties : @{resourceId=9a10aa24-6772-42ea-a24c-47989acae5c9; saltStackMasterId=saltstack_enterprise_installer; zone_overlapping_migrated=true; saltStackMinionId=EPRTAPP201SB; migrationMessage=; constraints=System.Object[]; powerState=ON; 
+             environmentName=On premise; countIndex=1; hasSnapshots=false; computeHostType=ClusterComputeResource; id=/resources/compute/9a10aa24-6772-42ea-a24c-47989acae5c9; cpuCount=4; totalMemoryMB=16384; endpointType=vsphere; tags=System.Object[]; 
+             saltStackAssociatedResourceName=Cloud_SaltStack; resourceLink=/resources/compute/9a10aa24-6772-42ea-a24c-47989acae5c9; hostName=EPRTAPP201SB.application.enet; cloudConfig=<powershell>
+             New-NetFirewallRule -Name "SMB445" -DisplayName "SMB445" -Protocol TCP -LocalPort 445
+             </powershell>
+             ; networks=System.Object[]; saltStackAssociatedResourceId=f12f9b9b-b8b8-490a-9357-c0245d03d5d0; resourcePool=/resources/pools/46a4133709134e75-7f703c5265a63d87; componentType=Cloud.vSphere.Machine; address=10.12.61.91; 
+             datastoreName=int-hdc-ds-prd4-vsan01; coreCount=4; snapshotCount=0; saltEnvironment=windows; resource_id=503d9703-a4d5-608a-bd32-cfdda33d3e10; accounts=System.Object[]; flavorMappingName=Type 3 - 4 CPU, 16GB RAM; 
+             vmFolderPath=[int-hdc-ds-prd4-vsan01] 2faea769-30b6-79e7-c1f2-6c92cfcc4030; customizationSpec=Windows; subscriptions={"run_hightstate":true,"f5_run_workflow":false,"saltEnvironment":"main","assign_server_name":true,"f5_run_workflow_dual":true,"
+             servicenow_create_item":true,"salt_deployed_machine_state_apply":false,"salt_create_server_configuration_file":true}; moref=VirtualMachine:vm-203514; resourceDescLink=/resources/compute-descriptions/0f0dbd30-dc80-46db-b6ee-07f6910a4e3e; 
+             project=a233d007-7d52-4883-91ec-2cb21d5821d7; Infoblox.IPAM.Network.enableDns=true; zone=int-hdc-hce-prd-cl04; migrationStatus=SUCCESS; memoryGB=16; isSimulate=false; image=prod-windows-2022; count=4; resourceName=EPRTAPP201SB; 
+             cloneFromImage=vcfa_template_library_hpmivmc610 / Windows2022_Latest; flavor=Type 3 - 4 CPU, 16GB RAM; softwareName=Microsoft Windows Server 2022 (64-bit); name=EDU-ab10h; region=internal-protected-hdc; neglectPowerOffVms=false; 
+             attachedDisks=System.Object[]; storage=; minionId=EPRTAPP201SB; areVMActionsDisabled=false; providerId=503d9703-a4d5-608a-bd32-cfdda33d3e10; osType=WINDOWS; instanceUUID=503d9703-a4d5-608a-bd32-cfdda33d3e10; 
+             Infoblox.IPAM.createFixedAddress=true; endpointId=18328f00-1842-4df5-bd2a-ec3846e79435; externalId=503d9703-a4d5-608a-bd32-cfdda33d3e10; datacenter=Datacenter:datacenter-3; saltStackHasAssociatedResource=true; 
+             Infoblox.IPAM.createAddressRecord=true; primaryMAC=00:50:56:bd:84:3e; masterId=saltstack_enterprise_installer; computeHostRef=ClusterComputeResource:domain-c136576; iamInstanceProfileName=TSG-SSM-Managed; remoteAccess=; 
+             account=hpmivmc610.hce.dis.gov.au; vcUuid=c324a2e3-21e7-40d9-bc92-6c8fafb74042}
+createdAt  : 2026-03-04T03:54:55.081788Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+dependsOn  : {Cloud_Private_Secondary[0], Cloud_Public_Secondary[0], Cloud_Volume_EDrive[1]}
+state      : OK
+
+id         : 4517cd19-4db8-4cff-ab8b-c123c40b3733
+name       : Cloud_Machine[2]
+type       : Cloud.Machine
+properties : @{resourceId=4517cd19-4db8-4cff-ab8b-c123c40b3733; saltStackMasterId=saltstack_enterprise_installer; zone_overlapping_migrated=true; saltStackMinionId=EPRTAPP201SC; migrationMessage=; constraints=System.Object[]; powerState=OFF; 
+             environmentName=On premise; countIndex=2; hasSnapshots=false; computeHostType=ClusterComputeResource; id=/resources/compute/4517cd19-4db8-4cff-ab8b-c123c40b3733; cpuCount=4; totalMemoryMB=16384; endpointType=vsphere; tags=System.Object[]; 
+             saltStackAssociatedResourceName=Cloud_SaltStack; resourceLink=/resources/compute/4517cd19-4db8-4cff-ab8b-c123c40b3733; hostName=EPRTAPP201SC.application.enet; cloudConfig=<powershell>
+             New-NetFirewallRule -Name "SMB445" -DisplayName "SMB445" -Protocol TCP -LocalPort 445
+             </powershell>
+             ; networks=System.Object[]; saltStackAssociatedResourceId=f12f9b9b-b8b8-490a-9357-c0245d03d5d0; resourcePool=/resources/pools/46a4133709134e75-7f703c5265a63d87; componentType=Cloud.vSphere.Machine; address=10.12.61.99; 
+             datastoreName=int-fdc-ds-prd4-vsan01; coreCount=4; snapshotCount=0; saltEnvironment=windows; resource_id=500f578d-f2ef-aaae-d446-575e9cb607fe; accounts=System.Object[]; flavorMappingName=Type 3 - 4 CPU, 16GB RAM; 
+             vmFolderPath=[int-fdc-ds-prd4-vsan01] 34aea769-a2b9-4ae9-52dc-6c92cfcd77f4; customizationSpec=Windows; subscriptions={"run_hightstate":true,"f5_run_workflow":false,"saltEnvironment":"main","assign_server_name":true,"f5_run_workflow_dual":true,"
+             servicenow_create_item":true,"salt_deployed_machine_state_apply":false,"salt_create_server_configuration_file":true}; moref=VirtualMachine:vm-378029; resourceDescLink=/resources/compute-descriptions/f52c3079-138a-4e1c-91b5-f273906aab00; 
+             project=a233d007-7d52-4883-91ec-2cb21d5821d7; Infoblox.IPAM.Network.enableDns=true; zone=int-fdc-hce-prd-cl04; migrationStatus=SUCCESS; memoryGB=16; isSimulate=false; image=prod-windows-2022; count=4; resourceName=EPRTAPP201SC; 
+             cloneFromImage=vcfa_template_central_library / Windows2022_Latest; flavor=Type 3 - 4 CPU, 16GB RAM; softwareName=Microsoft Windows Server 2022 (64-bit); name=EDU-ab10h; region=internal-protected-fdc; neglectPowerOffVms=false; 
+             attachedDisks=System.Object[]; storage=; minionId=EPRTAPP201SC; areVMActionsDisabled=false; providerId=500f578d-f2ef-aaae-d446-575e9cb607fe; osType=WINDOWS; instanceUUID=500f578d-f2ef-aaae-d446-575e9cb607fe; 
+             Infoblox.IPAM.createFixedAddress=true; endpointId=473338b5-1044-41dd-bbba-87e3fff1f8be; externalId=500f578d-f2ef-aaae-d446-575e9cb607fe; datacenter=Datacenter:datacenter-3; saltStackHasAssociatedResource=true; 
+             Infoblox.IPAM.createAddressRecord=true; primaryMAC=00:50:56:8f:14:e6; masterId=saltstack_enterprise_installer; computeHostRef=ClusterComputeResource:domain-c252423; iamInstanceProfileName=TSG-SSM-Managed; remoteAccess=; 
+             account=hpmivmc310.hce.dis.gov.au; vcUuid=556fce33-3d0d-4c83-9bb3-d9b0133c50c8}
+createdAt  : 2026-03-04T03:55:28.367545Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+dependsOn  : {Cloud_Public_Primary[0], Cloud_Private_Primary[0], Cloud_Volume_EDrive[2]}
+state      : OK
+
+id         : 585f457e-245f-4aa4-b41b-d8d6306c07cf
+name       : Cloud_Machine[3]
+type       : Cloud.Machine
+properties : @{resourceId=585f457e-245f-4aa4-b41b-d8d6306c07cf; saltStackMasterId=saltstack_enterprise_installer; zone_overlapping_migrated=true; saltStackMinionId=EPRTAPP201SD; migrationMessage=; constraints=System.Object[]; powerState=OFF; 
+             environmentName=On premise; countIndex=3; hasSnapshots=false; computeHostType=ClusterComputeResource; id=/resources/compute/585f457e-245f-4aa4-b41b-d8d6306c07cf; cpuCount=4; totalMemoryMB=16384; endpointType=vsphere; tags=System.Object[]; 
+             saltStackAssociatedResourceName=Cloud_SaltStack; resourceLink=/resources/compute/585f457e-245f-4aa4-b41b-d8d6306c07cf; hostName=EPRTAPP201SD.application.enet; cloudConfig=<powershell>
+             New-NetFirewallRule -Name "SMB445" -DisplayName "SMB445" -Protocol TCP -LocalPort 445
+             </powershell>
+             ; networks=System.Object[]; saltStackAssociatedResourceId=f12f9b9b-b8b8-490a-9357-c0245d03d5d0; resourcePool=/resources/pools/46a4133709134e75-7f703c5265a63d87; componentType=Cloud.vSphere.Machine; address=10.12.61.100; 
+             datastoreName=int-hdc-ds-prd4-vsan01; coreCount=4; snapshotCount=0; saltEnvironment=windows; resource_id=503d381b-b4a3-7954-def2-2047de206dd9; accounts=System.Object[]; flavorMappingName=Type 3 - 4 CPU, 16GB RAM; 
+             vmFolderPath=[int-hdc-ds-prd4-vsan01] 2faea769-b801-222b-3305-6c92cfcc401e; customizationSpec=Windows; subscriptions={"run_hightstate":true,"f5_run_workflow":false,"saltEnvironment":"main","assign_server_name":true,"f5_run_workflow_dual":true,"
+             servicenow_create_item":true,"salt_deployed_machine_state_apply":false,"salt_create_server_configuration_file":true}; moref=VirtualMachine:vm-203515; resourceDescLink=/resources/compute-descriptions/322b8a03-d860-44a7-a4c7-d5dfb807c84b; 
+             project=a233d007-7d52-4883-91ec-2cb21d5821d7; Infoblox.IPAM.Network.enableDns=true; zone=int-hdc-hce-prd-cl04; migrationStatus=SUCCESS; memoryGB=16; isSimulate=false; image=prod-windows-2022; count=4; resourceName=EPRTAPP201SD; 
+             cloneFromImage=vcfa_template_library_hpmivmc610 / Windows2022_Latest; flavor=Type 3 - 4 CPU, 16GB RAM; softwareName=Microsoft Windows Server 2022 (64-bit); name=EDU-ab10h; region=internal-protected-hdc; neglectPowerOffVms=false; 
+             attachedDisks=System.Object[]; storage=; minionId=EPRTAPP201SD; areVMActionsDisabled=false; providerId=503d381b-b4a3-7954-def2-2047de206dd9; osType=WINDOWS; instanceUUID=503d381b-b4a3-7954-def2-2047de206dd9; 
+             Infoblox.IPAM.createFixedAddress=true; endpointId=18328f00-1842-4df5-bd2a-ec3846e79435; externalId=503d381b-b4a3-7954-def2-2047de206dd9; datacenter=Datacenter:datacenter-3; saltStackHasAssociatedResource=true; 
+             Infoblox.IPAM.createAddressRecord=true; primaryMAC=00:50:56:bd:6b:11; masterId=saltstack_enterprise_installer; computeHostRef=ClusterComputeResource:domain-c136576; iamInstanceProfileName=TSG-SSM-Managed; remoteAccess=; 
+             account=hpmivmc610.hce.dis.gov.au; vcUuid=c324a2e3-21e7-40d9-bc92-6c8fafb74042}
+createdAt  : 2026-03-04T03:55:54.513878Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+dependsOn  : {Cloud_Private_Secondary[0], Cloud_Public_Secondary[0], Cloud_Volume_EDrive[3]}
+state      : OK
+
+id         : 5695b368-fbaa-40da-9cf2-0927f6863542
+name       : Cloud_Private_Primary[0]
+type       : Cloud.Network
+properties : @{resourceId=5695b368-fbaa-40da-9cf2-0927f6863542; resourceDescLink=/provisioning/resources/compute-network-descriptions/50be65b3-0e57-4993-8e98-fca6e64f347a; constraints=System.Object[]; networkCidr=10.12.60.0/22; prefixLength=22; 
+             path=/global-infra/segments/vlan_backed_PG-EDC-PR-470-AppBack; countIndex=0; id=/provisioning/resources/compute-networks/5695b368-fbaa-40da-9cf2-0927f6863542; isSimulate=false; endpointType=nsxt; count=1; dns=System.Object[]; 
+             resourceName=vlan_backed_PG-EDC-PR-470-AppBack_FDC; tags=System.Object[]; domain=application.enet; name=Cloud_Private_Primary[0]; resourceLink=/provisioning/resources/compute-networks/5695b368-fbaa-40da-9cf2-0927f6863542; region=global; 
+             dnsSearchDomains=System.Object[]; netmask=255.255.252.0; providerId=23f12f86-b274-4ea2-8b92-97bad06878b8; networkType=existing; endpointId=eb9cb5ec-795a-4d10-a75f-c2689f2f5f47; externalId=23f12f86-b274-4ea2-8b92-97bad06878b8; 
+             resource_id=23f12f86-b274-4ea2-8b92-97bad06878b8; accounts=System.Object[]; account=hpminsx220.hce.dis.gov.au; gateway=10.12.63.254}
+createdAt  : 2026-03-04T03:54:03.417543Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : fba3bcf9-3bed-495c-b168-0b0a34e4eb4d
+name       : Cloud_Private_Secondary[0]
+type       : Cloud.Network
+properties : @{resourceId=fba3bcf9-3bed-495c-b168-0b0a34e4eb4d; resourceDescLink=/provisioning/resources/compute-network-descriptions/9ec639c9-3906-4088-823a-bc83315da74a; constraints=System.Object[]; networkCidr=10.12.60.0/22; prefixLength=22; 
+             path=/global-infra/segments/vlan_backed_PG-EDC-PR-470-AppBack-iFzlEXUiu; netmask=255.255.252.0; providerId=0698f19f-7b45-4680-813a-5837c302729b; countIndex=0; id=/provisioning/resources/compute-networks/fba3bcf9-3bed-495c-b168-0b0a34e4eb4d; 
+             networkType=existing; isSimulate=false; endpointType=nsxt; endpointId=eb9cb5ec-795a-4d10-a75f-c2689f2f5f47; count=1; dns=System.Object[]; externalId=0698f19f-7b45-4680-813a-5837c302729b; resourceName=PG-EDC-PR-470-AppBack-SDN_GLB; 
+             tags=System.Object[]; name=Cloud_Private_Secondary[0]; resource_id=0698f19f-7b45-4680-813a-5837c302729b; resourceLink=/provisioning/resources/compute-networks/fba3bcf9-3bed-495c-b168-0b0a34e4eb4d; accounts=System.Object[]; region=global; 
+             account=hpminsx220.hce.dis.gov.au; gateway=10.12.63.254}
+createdAt  : 2026-03-04T03:54:31.660904Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : 7ed82ed8-9179-4677-b37d-50fe8b67792e
+name       : Cloud_Public_Primary[0]
+type       : Cloud.Network
+properties : @{resourceId=7ed82ed8-9179-4677-b37d-50fe8b67792e; resourceDescLink=/provisioning/resources/compute-network-descriptions/2d46eafd-75ce-4abf-bb5e-73f836b3c310; constraints=System.Object[]; networkCidr=10.12.56.0/22; prefixLength=22; 
+             path=/global-infra/segments/vlan_backed_PG-EDC-PR-469-AppFront; countIndex=0; id=/provisioning/resources/compute-networks/7ed82ed8-9179-4677-b37d-50fe8b67792e; isSimulate=false; endpointType=nsxt; count=1; dns=System.Object[]; 
+             resourceName=vlan_backed_PG-EDC-PR-469-AppFront_FDC; tags=System.Object[]; domain=application.enet; name=Cloud_Public_Primary[0]; resourceLink=/provisioning/resources/compute-networks/7ed82ed8-9179-4677-b37d-50fe8b67792e; region=global; 
+             dnsSearchDomains=System.Object[]; netmask=255.255.252.0; providerId=9ca267cb-647b-474f-b29f-982564bc82dc; networkType=existing; endpointId=eb9cb5ec-795a-4d10-a75f-c2689f2f5f47; externalId=9ca267cb-647b-474f-b29f-982564bc82dc; 
+             resource_id=9ca267cb-647b-474f-b29f-982564bc82dc; accounts=System.Object[]; account=hpminsx220.hce.dis.gov.au; gateway=10.12.59.254}
+createdAt  : 2026-03-04T03:54:05.466445Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : 4900f155-12ae-4558-9ed2-f930efeee982
+name       : Cloud_Public_Secondary[0]
+type       : Cloud.Network
+properties : @{resourceId=4900f155-12ae-4558-9ed2-f930efeee982; resourceDescLink=/provisioning/resources/compute-network-descriptions/683ac58f-9ffd-4bc1-8c7c-c54d1f3e7e95; constraints=System.Object[]; networkCidr=10.12.56.0/22; prefixLength=22; 
+             path=/global-infra/segments/vlan_backed_PG-EDC-PR-469-AppFront-1VZjwoxB-; netmask=255.255.252.0; providerId=58bd6801-1362-4122-9f03-68ecdb868334; countIndex=0; id=/provisioning/resources/compute-networks/4900f155-12ae-4558-9ed2-f930efeee982; 
+             networkType=existing; isSimulate=false; endpointType=nsxt; endpointId=eb9cb5ec-795a-4d10-a75f-c2689f2f5f47; count=1; dns=System.Object[]; externalId=58bd6801-1362-4122-9f03-68ecdb868334; resourceName=PG-EDC-PR-469-AppFront-SDN_GLB; 
+             name=Cloud_Public_Secondary[0]; resource_id=58bd6801-1362-4122-9f03-68ecdb868334; resourceLink=/provisioning/resources/compute-networks/4900f155-12ae-4558-9ed2-f930efeee982; accounts=System.Object[]; region=global; 
+             account=hpminsx220.hce.dis.gov.au; gateway=10.12.59.254}
+createdAt  : 2026-03-04T03:54:36.068966Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : f12f9b9b-b8b8-490a-9357-c0245d03d5d0
+name       : Cloud_SaltStack
+type       : Cloud.SaltStack
+properties : @{masterId=saltstack_enterprise_installer; hosts=System.Object[]; saltEnvironment=System.Object[]; saltGrains=; resourceName=Cloud_SaltStack; minionIds=System.Object[]; stateFiles=System.Object[]; additionalMinionParams=}
+createdAt  : 2026-03-04T03:55:59.863455Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+dependsOn  : {Cloud_Machine[3], Cloud_Machine[2], Cloud_Machine[1], Cloud_Machine[0]}
+state      : OK
+
+id         : 3bd701a5-3ce1-43fc-bb3f-da01b66be659
+name       : Cloud_Volume_EDrive[0]
+type       : Cloud.Volume
+properties : @{resourceId=3bd701a5-3ce1-43fc-bb3f-da01b66be659; projectAuthLink=/provisioning/resources/projects/a233d007-7d52-4883-91ec-2cb21d5821d7; instance=0; resourceDescLink=/resources/disks/1f01ae30-bef5-40a8-a038-f1b7585f8271; 
+             diskPlacementRef=Datastore:datastore-252434; type=HDD; constraints=System.Object[]; zone=ClusterComputeResource:domain-c252423; countIndex=0; id=/resources/disks/3bd701a5-3ce1-43fc-bb3f-da01b66be659; persistent=False; isSimulate=false; 
+             diskFile=[int-fdc-ds-prd4-vsan01] 39aea769-e098-ced9-5cdf-6c92cfcb4a84/E-drive.vmdk; endpointType=vsphere; count=4; resourceName=E-drive; tags=System.Object[]; capacityGb=50; vm=VirtualMachine:vm-378030; name=E-drive; 
+             resourceLink=/resources/disks/3bd701a5-3ce1-43fc-bb3f-da01b66be659; region=Datacenter:datacenter-3; status=ATTACHED; independent=false; ownerAuthLink=/owner/provisioning/auth/csp/users/svc_snow_vra; origin=DEPLOYED; sharesLevel=normal; 
+             shares=1000; providerId=617-2001; diskType=data; componentType=Cloud.vSphere.Disk; endpointId=473338b5-1044-41dd-bbba-87e3fff1f8be; externalId=617-2001; encrypted=False; provisioningType=thin; limitIops=-1; resource_id=617-2001; 
+             accounts=System.Object[]; vmFolderPath=[int-fdc-ds-prd4-vsan01] 39aea769-e098-ced9-5cdf-6c92cfcb4a84; account=hpmivmc310.hce.dis.gov.au; vcUuid=556fce33-3d0d-4c83-9bb3-d9b0133c50c8}
+createdAt  : 2026-03-04T03:54:14.028397Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : dda4a6e0-baca-4cfb-863a-142d79bcd0b6
+name       : Cloud_Volume_EDrive[1]
+type       : Cloud.Volume
+properties : @{resourceId=dda4a6e0-baca-4cfb-863a-142d79bcd0b6; projectAuthLink=/provisioning/resources/projects/a233d007-7d52-4883-91ec-2cb21d5821d7; instance=0; resourceDescLink=/resources/disks/0814c2b0-6970-462d-ba77-dbdce20f8af3; 
+             diskPlacementRef=Datastore:datastore-136588; type=HDD; constraints=System.Object[]; zone=ClusterComputeResource:domain-c136576; countIndex=1; id=/resources/disks/dda4a6e0-baca-4cfb-863a-142d79bcd0b6; persistent=False; isSimulate=false; 
+             diskFile=[int-hdc-ds-prd4-vsan01] 2faea769-30b6-79e7-c1f2-6c92cfcc4030/E-drive.vmdk; endpointType=vsphere; count=4; resourceName=E-drive; tags=System.Object[]; capacityGb=50; vm=VirtualMachine:vm-203514; name=E-drive; 
+             resourceLink=/resources/disks/dda4a6e0-baca-4cfb-863a-142d79bcd0b6; region=Datacenter:datacenter-3; status=ATTACHED; independent=false; ownerAuthLink=/owner/provisioning/auth/csp/users/svc_snow_vra; origin=DEPLOYED; sharesLevel=normal; 
+             shares=1000; providerId=4806-2001; diskType=data; componentType=Cloud.vSphere.Disk; endpointId=18328f00-1842-4df5-bd2a-ec3846e79435; externalId=4806-2001; encrypted=False; provisioningType=thin; limitIops=-1; resource_id=4806-2001; 
+             accounts=System.Object[]; vmFolderPath=[int-hdc-ds-prd4-vsan01] 2faea769-30b6-79e7-c1f2-6c92cfcc4030; account=hpmivmc610.hce.dis.gov.au; vcUuid=c324a2e3-21e7-40d9-bc92-6c8fafb74042}
+createdAt  : 2026-03-04T03:54:38.005301Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : a6896bc6-59f2-4906-98fa-f5e6ff816930
+name       : Cloud_Volume_EDrive[2]
+type       : Cloud.Volume
+properties : @{resourceId=a6896bc6-59f2-4906-98fa-f5e6ff816930; projectAuthLink=/provisioning/resources/projects/a233d007-7d52-4883-91ec-2cb21d5821d7; instance=0; resourceDescLink=/resources/disks/2b8b8e42-c36a-411c-9e1d-7626be9aab31; 
+             diskPlacementRef=Datastore:datastore-252434; type=HDD; constraints=System.Object[]; zone=ClusterComputeResource:domain-c252423; countIndex=2; id=/resources/disks/a6896bc6-59f2-4906-98fa-f5e6ff816930; persistent=False; isSimulate=false; 
+             diskFile=[int-fdc-ds-prd4-vsan01] 34aea769-a2b9-4ae9-52dc-6c92cfcd77f4/E-drive.vmdk; endpointType=vsphere; count=4; resourceName=E-drive; tags=System.Object[]; capacityGb=50; vm=VirtualMachine:vm-378029; name=E-drive; 
+             resourceLink=/resources/disks/a6896bc6-59f2-4906-98fa-f5e6ff816930; region=Datacenter:datacenter-3; status=ATTACHED; independent=false; ownerAuthLink=/owner/provisioning/auth/csp/users/svc_snow_vra; origin=DEPLOYED; sharesLevel=normal; 
+             shares=1000; providerId=7790-2001; diskType=data; componentType=Cloud.vSphere.Disk; endpointId=473338b5-1044-41dd-bbba-87e3fff1f8be; externalId=7790-2001; encrypted=False; provisioningType=thin; limitIops=-1; resource_id=7790-2001; 
+             accounts=System.Object[]; vmFolderPath=[int-fdc-ds-prd4-vsan01] 34aea769-a2b9-4ae9-52dc-6c92cfcd77f4; account=hpmivmc310.hce.dis.gov.au; vcUuid=556fce33-3d0d-4c83-9bb3-d9b0133c50c8}
+createdAt  : 2026-03-04T03:54:57.730379Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+id         : 5d63e641-736b-4611-8aa3-f26c79da9822
+name       : Cloud_Volume_EDrive[3]
+type       : Cloud.Volume
+properties : @{resourceId=5d63e641-736b-4611-8aa3-f26c79da9822; projectAuthLink=/provisioning/resources/projects/a233d007-7d52-4883-91ec-2cb21d5821d7; instance=0; resourceDescLink=/resources/disks/a839abfc-91e8-41f3-b6c5-780080f5824d; 
+             diskPlacementRef=Datastore:datastore-136588; type=HDD; constraints=System.Object[]; zone=ClusterComputeResource:domain-c136576; countIndex=3; id=/resources/disks/5d63e641-736b-4611-8aa3-f26c79da9822; persistent=False; isSimulate=false; 
+             diskFile=[int-hdc-ds-prd4-vsan01] 2faea769-b801-222b-3305-6c92cfcc401e/E-drive.vmdk; endpointType=vsphere; count=4; resourceName=E-drive; tags=System.Object[]; capacityGb=50; vm=VirtualMachine:vm-203515; name=E-drive; 
+             resourceLink=/resources/disks/5d63e641-736b-4611-8aa3-f26c79da9822; region=Datacenter:datacenter-3; status=ATTACHED; independent=false; ownerAuthLink=/owner/provisioning/auth/csp/users/svc_snow_vra; origin=DEPLOYED; sharesLevel=normal; 
+             shares=1000; providerId=4819-2001; diskType=data; componentType=Cloud.vSphere.Disk; endpointId=18328f00-1842-4df5-bd2a-ec3846e79435; externalId=4819-2001; encrypted=False; provisioningType=thin; limitIops=-1; resource_id=4819-2001; 
+             accounts=System.Object[]; vmFolderPath=[int-hdc-ds-prd4-vsan01] 2faea769-b801-222b-3305-6c92cfcc401e; account=hpmivmc610.hce.dis.gov.au; vcUuid=c324a2e3-21e7-40d9-bc92-6c8fafb74042}
+createdAt  : 2026-03-04T03:55:30.008242Z
+syncStatus : SUCCESS
+origin     : DEPLOYED
+state      : OK
+
+
+
+
+PS C:\Users\CM3745_A> $resources | select name
+
+name                      
+----                      
+Cloud_Machine[0]          
+Cloud_Machine[1]          
+Cloud_Machine[2]          
+Cloud_Machine[3]          
+Cloud_Private_Primary[0]  
+Cloud_Private_Secondary[0]
+Cloud_Public_Primary[0]   
+Cloud_Public_Secondary[0] 
+Cloud_SaltStack           
+Cloud_Volume_EDrive[0]    
+Cloud_Volume_EDrive[1]    
+Cloud_Volume_EDrive[2]    
+Cloud_Volume_EDrive[3]    
+
+
+
+PS C:\Users\CM3745_A> 
