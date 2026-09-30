@@ -1,1 +1,3 @@
-   sudo grep -iE "decrypt|Downloading|PublicData" /opt/jfrog/xray/var/log/xray-server-service.log | awk '$1 > "2026-09-30T05:17"' | tail -10
+  sudo grep -iE "masterKey" /opt/jfrog/xray/var/etc/system.yaml
+  sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -iE "MASTERKEY|JF_SHARED"
+  ls -la /opt/jfrog/xray/var/etc/security/
