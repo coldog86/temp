@@ -1,4 +1,6 @@
-LOG=/opt/jfrog/xray/var/log/xray-server-service.log
-RID=$(sudo grep "Triggering db sync" $LOG | tail -1 | grep -oP '\[\K[0-9a-f]{32}(?=\])')
-echo "Request: $RID"; sudo grep "$RID" $LOG
-sudo grep -iE "decrypt|proxy" $LOG | tail -5
+
+2026-09-29T06:29:33.277Z [jfxr ] [ERROR] [                ] [http:101                      ] [BackgroundContext               ] Failed to get proxy configuration: Failed to decrypt proxy user password
+ --- at /go/src/jfrog.com/xray/xray/backend/backend/server/entities/configuration/services/configuration/configuration_service.go:1712 (configurationService.GetProxyUrl) ---
+2026-09-30T05:08:59.731Z [jfxr ] [ERROR] [                ] [http:101                      ] [BackgroundContext               ] Failed to get proxy configuration: Failed to decrypt proxy user password
+ --- at /go/src/jfrog.com/xray/xray/backend/backend/server/entities/configuration/services/configuration/configuration_service.go:1712 (configurationService.GetProxyUrl) ---
+[cm3745_x@dpriapp311 ~]$
