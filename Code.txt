@@ -1,11 +1,165 @@
-systemctl status xray --no-pager | head -20
+[cm3745_x@dpriapp311 ~]$   sudo grep -iE "masterKey" /opt/jfrog/xray/var/etc/system.yaml
+  sudo cat /proc/$(systemctl show xray -p MainPID --value)/environ | tr '\0' '\n' | grep -iE "MASTERKEY|JF_SHARED"
+  ls -la /opt/jfrog/xray/var/etc/security/
+    #masterKeyFile: "<For example: JFROG_HOME/xray/var/etc/security/master.key>"
+cat: /proc/0/environ: No such file or directory
+total 12
+drwxr-xr-x.  3 xray xray   52 Aug 11 14:28 .
+drwxr-xr-x. 12 xray xray 4096 Sep 30 15:19 ..
+-rw-r--r--.  1 xray xray   99 Aug 11 14:29 join.key
+drwxr-x---.  3 xray xray   21 Aug 11 14:28 keys
+-rw-r-----.  1 xray xray   64 Aug 11 14:28 master.key
+[cm3745_x@dpriapp311 ~]$ systemctl status xray --no-pager | head -20
 ps -ef | grep -i [x]ray | head
 curl -s http://localhost:8082/router/api/v1/system/health | jq '.services[] | {service_name, state}'
 
 sudo journalctl -u xray -n 50 --no-pager
 sudo tail -50 /opt/jfrog/xray/var/log/console.log
-
-sudo -u postgres psql -l                          # find the Xray DB name
-sudo -u postgres psql <xraydb> -c "\dt *proxy*"
-sudo -u postgres psql <xraydb> -c "\dt *config*"
-
+● xray.service - Xray service
+     Loaded: loaded (/usr/lib/systemd/system/xray.service; enabled; preset: disabled)
+     Active: active (exited) since Wed 2026-09-30 15:19:10 AEST; 8min ago
+    Process: 496504 ExecStart=/opt/jfrog/xray/app/bin/xray.sh start (code=exited, status=0/SUCCESS)
+   Main PID: 496504 (code=exited, status=0/SUCCESS)
+        CPU: 38ms
+xray        8989       1  0 Sep18 ?        00:00:00 /usr/lib/systemd/systemd --user
+xray        9009    8989  0 Sep18 ?        00:00:00 (sd-pam)
+xray       11292       1  0 Sep18 ?        00:00:05 /usr/lib64/erlang/erts-15.2.7/bin/epmd -daemon
+xray       12106       1  1 Sep18 ?        04:14:10 /usr/lib64/erlang/erts-15.2.7/bin/beam.smp -W w -MBas ageffcbf -MHas ageffcbf -MBlmbcs 512 -MHlmbcs 512 -MMmcs 30 -pc unicode -P 1048576 -t 5000000 -stbt db -zdbbl 128000 -sbwt none -sbwtdcpu none -sbwtdio none -B i -- -root /usr/lib64/erlang -bindir /usr/lib64/erlang/erts-15.2.7/bin -progname erl -- -home /opt/jfrog/xray -- -pa  -noshell -noinput -s rabbit boot -boot start_sasl -syslog logger [] -syslog syslog_error_logger false -kernel prevent_overlapping_partitions false -detached -noshell -noinput --
+xray       12122   12106  0 Sep18 ?        00:00:00 erl_child_setup 32000
+xray       12351   12122  0 Sep18 ?        00:00:00 sh -s disksup
+xray       12353   12122  0 Sep18 ?        00:00:00 /usr/lib64/erlang/lib/os_mon-2.10.1/priv/bin/memsup
+xray       12354   12122  0 Sep18 ?        00:00:00 /usr/lib64/erlang/lib/os_mon-2.10.1/priv/bin/cpu_sup
+xray       12913   12122  0 Sep18 ?        00:00:09 /usr/lib64/erlang/erts-15.2.7/bin/inet_gethost 4
+xray       12914   12913  0 Sep18 ?        00:00:24 /usr/lib64/erlang/erts-15.2.7/bin/inet_gethost 4
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+{
+  "service_name": null,
+  "state": "HEALTHY"
+}
+Aug 11 14:28:17 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 11 14:29:10 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Aug 11 15:50:00 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Aug 11 15:50:06 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Aug 11 15:50:06 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+Aug 11 15:50:06 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 11 15:50:34 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Aug 11 16:00:13 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Aug 11 16:00:19 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Aug 11 16:00:19 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+Aug 11 16:00:19 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 11 16:00:46 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Aug 11 16:02:24 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Aug 11 16:02:49 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Aug 11 16:02:49 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+Aug 11 16:02:49 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 11 16:03:16 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Aug 16 03:24:52 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Aug 16 03:26:22 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Stopping timed out. Terminating.
+Aug 16 03:26:22 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Control process exited, code=killed, status=15/TERM
+Aug 16 03:26:22 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Failed with result 'timeout'.
+Aug 16 03:26:22 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+-- Boot 54241a869fa842778d3efa33dcad1a1a --
+Aug 21 19:58:07 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 21 19:58:45 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Aug 21 20:09:25 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Aug 21 20:09:25 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Aug 21 20:09:25 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+-- Boot 07d07ec5a0d3454aa776a5811dfcbbdb --
+Aug 21 20:09:37 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Aug 21 20:10:18 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Sep 04 21:02:11 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Sep 04 21:02:12 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Sep 04 21:02:12 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+-- Boot 2aed43576e7b4008920ba88d7e9f96b0 --
+Sep 04 21:02:34 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Sep 04 21:03:13 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Sep 18 20:05:02 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Sep 18 20:05:04 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Sep 18 20:05:04 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+-- Boot 22b1d17c9954470cb360fe15684c6b14 --
+Sep 18 20:05:15 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Sep 18 20:05:55 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Sep 29 16:17:31 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Sep 29 16:17:57 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Sep 29 16:17:57 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+Sep 29 16:18:22 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Sep 29 16:18:58 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+Sep 30 15:18:12 dpriapp311.mgt.dis.gov.au systemd[1]: Stopping Xray service...
+Sep 30 15:18:38 dpriapp311.mgt.dis.gov.au systemd[1]: xray.service: Deactivated successfully.
+Sep 30 15:18:38 dpriapp311.mgt.dis.gov.au systemd[1]: Stopped Xray service.
+Sep 30 15:18:38 dpriapp311.mgt.dis.gov.au systemd[1]: Starting Xray service...
+Sep 30 15:19:10 dpriapp311.mgt.dis.gov.au systemd[1]: Finished Xray service.
+2026-09-30T05:27:11.925Z [jfob ] [WARN ] [0257bceccbe1cd70] [shipping_service.go:766       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/raw-usage-metrics.2026-09-30T15-18-35.670.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.931Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][251ae4fe5cee3ae6] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.931Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T02-49-04.806.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.936Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][2ae7c9c337fc8d99] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.937Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T03-34-04.812.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.940Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][395247167a2204f2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.940Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T03-49-04.813.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.943Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][4404899500334927] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.943Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T04-19-04.817.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.946Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][4ca2f66ca37b2027] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.946Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T04-34-04.819.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.949Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][2e78982352985ee0] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.949Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/xray-server-usage-2026-09-30T05-04-04.823.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.956Z [jfob ] [ERROR] [0257bceccbe1cd70] [artifactory_client.go:144     ] [main                ] [                ] - Upload file to Artifactory API returned: 400 {
+"errors" : [ {
+"status" : 400,
+"message" : "Bad Request"
+} ]
+} [artifactory_client] [spanId][6de54938818f6fbf] [spanTraceId][0257bceccbe1cd70]
+2026-09-30T05:27:11.956Z [jfob ] [ERROR] [0257bceccbe1cd70] [shipping_service.go:768       ] [main                ] [                ] - Upload failed for file /opt/jfrog/xray/var/data/server/usage/archived/aggregated-consumption-metrics.2026-09-30T15-18-35.664.log.gz with error failed to upload file to Artifactory (returned 400) [shipping_service] [spanId][42f33cb213a72ea2] [spanTraceId][0257bceccbe1cd70]
+[cm3745_x@dpriapp311 ~]$
