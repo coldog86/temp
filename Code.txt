@@ -18,3 +18,110 @@ At line:1 char:1
     + FullyQualifiedErrorId : FileNotFoundException
 
 Closed
+
+
+
+Get-ChildItem 'C:\Temp\SqlClient\lib\Microsoft.Bcl.AsyncInterfaces.dll' -ErrorAction SilentlyContinue |
+    ForEach-Object { [Reflection.AssemblyName]::GetAssemblyName($_.FullName).Version }
+Get-ChildItem 'C:\Temp\SqlClient\packages' -Directory -Filter 'Microsoft.Bcl.AsyncInterfaces*'
+
+
+# Get-SqlClient.ps1 - PowerShell 5.1
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+$WorkDir   = 'C:\Temp\SqlClient'
+$PkgDir    = Join-Path $WorkDir 'packages'
+$OutDir    = Join-Path $WorkDir 'lib'
+$NuGetExe  = Join-Path $WorkDir 'nuget.exe'
+$Source    = 'https://api.nuget.org/v3/index.json'   # swap for your Artifactory NuGet remote if required
+$Framework = 'net462'
+
+New-Item -ItemType Directory -Path $PkgDir -Force | Out-Null
+if (Test-Path $OutDir) { Remove-Item $OutDir -Recurse -Force }
+New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
+
+if (-not (Test-Path $NuGetExe)) {
+    Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $NuGetExe -UseBasicParsing
+}
+
+& $NuGetExe install Microsoft.Data.SqlClient -OutputDirectory $PkgDir -Framework $Framework -Source $Source -NonInteractive
+if ($LASTEXITCODE -ne 0) { throw "nuget install failed ($LASTEXITCODE)" }
+
+# Sort package folders by version so the highest version of each DLL is copied last and wins
+$packages = Get-ChildItem $PkgDir -Directory | ForEach-Object {
+    $ver = [version]'0.0'
+    if ($_.Name -match '^(?<id>.+?)\.(?<ver>\d+(\.\d+){1,3})(-.*)?$') {
+        $ver = [version]$Matches['ver']
+    }
+    [pscustomobject]@{ Dir = $_; Version = $ver }
+} | Sort-Object Version
+
+$Preferred = 'net462','net461','net46','net45','netstandard2.0'
+foreach ($pkg in $packages) {
+    $libRoot = Join-Path $pkg.Dir.FullName 'lib'
+    if (-not (Test-Path $libRoot)) { continue }
+    foreach ($fw in $Preferred) {
+        $fwPath = Join-Path $libRoot $fw
+        if (Test-Path $fwPath) {
+            Get-ChildItem $fwPath -Filter '*.dll' | ForEach-Object {
+                $dest = Join-Path $OutDir $_.Name
+                $copy = $true
+                if (Test-Path $dest) {
+                    $existing = [Reflection.AssemblyName]::GetAssemblyName($dest).Version
+                    $incoming = [Reflection.AssemblyName]::GetAssemblyName($_.FullName).Version
+                    $copy = $incoming -ge $existing
+                }
+                if ($copy) { Copy-Item $_.FullName $dest -Force }
+            }
+            break
+        }
+    }
+}
+
+# Native SNI DLL (must sit beside Microsoft.Data.SqlClient.dll)
+$arch = if ([Environment]::Is64BitProcess) { 'x64' } else { 'x86' }
+Get-ChildItem $PkgDir -Recurse -Filter "Microsoft.Data.SqlClient.SNI.$arch.dll" |
+    Sort-Object FullName -Descending | Select-Object -First 1 |
+    Copy-Item -Destination $OutDir -Force
+
+Write-Host "DLLs staged in $OutDir"
+
+
+
+# Load-SqlClient.ps1 - PowerShell 5.1
+$LibDir = 'C:\Temp\SqlClient\lib'
+
+if (-not ('SqlClientResolver' -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Reflection;
+
+public static class SqlClientResolver
+{
+    private static string _dir;
+
+    public static void Register(string dir)
+    {
+        _dir = dir;
+        AppDomain.CurrentDomain.AssemblyResolve += OnResolve;
+    }
+
+    private static Assembly OnResolve(object sender, ResolveEventArgs args)
+    {
+        string name = new AssemblyName(args.Name).Name;
+        string path = Path.Combine(_dir, name + ".dll");
+        return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+    }
+}
+'@
+    [SqlClientResolver]::Register($LibDir)
+}
+
+# LoadFrom (not Add-Type) so assemblies aren't type-scanned at load time
+[void][Reflection.Assembly]::LoadFrom((Join-Path $LibDir 'Microsoft.Data.SqlClient.dll'))
+
+$conn = New-Object Microsoft.Data.SqlClient.SqlConnection 'Server=myserver;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True'
+$conn.Open()
+$conn.State
+$conn.Close()
