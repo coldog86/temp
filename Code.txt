@@ -1,40 +1,6 @@
-# Get-SqlClient.ps1 - PowerShell 5.1
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Get-ChildItem 'C:\Temp\SqlClient\lib\*.dll' |
+    Where-Object { $_.Name -notlike '*.SNI.*' } |
+    ForEach-Object { try { Add-Type -Path $_.FullName } catch { } }
 
-$WorkDir   = 'C:\Temp\SqlClient'
-$PkgDir    = Join-Path $WorkDir 'packages'
-$OutDir    = Join-Path $WorkDir 'lib'
-$NuGetExe  = Join-Path $WorkDir 'nuget.exe'
-$Source    = 'https://api.nuget.org/v3/index.json'   # swap for your Artifactory NuGet remote if required
-$Framework = 'net462'
-
-New-Item -ItemType Directory -Path $PkgDir, $OutDir -Force | Out-Null
-
-if (-not (Test-Path $NuGetExe)) {
-    Invoke-WebRequest -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile $NuGetExe -UseBasicParsing
-}
-
-& $NuGetExe install Microsoft.Data.SqlClient -OutputDirectory $PkgDir -Framework $Framework -Source $Source -NonInteractive
-if ($LASTEXITCODE -ne 0) { throw "nuget install failed ($LASTEXITCODE)" }
-
-# Pick the best .NET Framework-compatible lib folder from each package
-$Preferred = 'net462','net461','net46','net45','netstandard2.0'
-foreach ($pkg in Get-ChildItem $PkgDir -Directory) {
-    $libRoot = Join-Path $pkg.FullName 'lib'
-    if (Test-Path $libRoot) {
-        foreach ($fw in $Preferred) {
-            $fwPath = Join-Path $libRoot $fw
-            if (Test-Path $fwPath) {
-                Copy-Item (Join-Path $fwPath '*.dll') $OutDir -Force
-                break
-            }
-        }
-    }
-}
-
-# Native SNI DLL (must sit beside Microsoft.Data.SqlClient.dll)
-$arch = if ([Environment]::Is64BitProcess) { 'x64' } else { 'x86' }
-Get-ChildItem $PkgDir -Recurse -Filter "Microsoft.Data.SqlClient.SNI.$arch.dll" |
-    Select-Object -First 1 | Copy-Item -Destination $OutDir -Force
-
-Write-Host "DLLs staged in $OutDir"
+$conn = New-Object Microsoft.Data.SqlClient.SqlConnection 'Server=myserver;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True'
+$conn.Open(); $conn.State; $conn.Close()
