@@ -4,3 +4,17 @@ Get-ChildItem 'C:\Temp\SqlClient\lib\*.dll' |
 
 $conn = New-Object Microsoft.Data.SqlClient.SqlConnection 'Server=myserver;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True'
 $conn.Open(); $conn.State; $conn.Close()
+
+
+
+PS C:\Windows\system32> $conn.Open(); $conn.State; $conn.Close()
+Exception calling "Open" with "0" argument(s): "Could not load file or assembly 'Microsoft.Bcl.AsyncInterfaces,
+Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' or one of its dependencies. The system cannot find
+the file specified."
+At line:1 char:1
++ $conn.Open(); $conn.State; $conn.Close()
++ ~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : FileNotFoundException
+
+Closed
