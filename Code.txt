@@ -1,7 +1,1 @@
-- powershell: |
-    . "$env:SQLCLIENT_HOME\Load-SqlClient.ps1"
-    $conn = New-Object Microsoft.Data.SqlClient.SqlConnection 'Server=tcp:YOURSERVER,1433;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True'
-    $conn.Open()
-    $conn.State
-    $conn.Close()
-  displayName: Test Microsoft.Data.SqlClient
+Microsoft.Data.SqlClient isn't published as a PowerShell module, only as a .NET NuGet library. The supported module that includes it is Microsoft's SqlServer module, which I can install machine-wide on the agents so pipelines get it with Import-Module SqlServer. That avoids loading DLLs manually. On conflicts: SqlServer shouldn't be imported in the same session as SQLPS or dbatools, since they ship different SqlClient versions. Is the SqlServer module OK for what you're doing, or do you need a specific SqlClient version?
