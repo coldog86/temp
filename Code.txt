@@ -1,1 +1,506 @@
-Microsoft.Data.SqlClient isn't published as a PowerShell module, only as a .NET NuGet library. The supported module that includes it is Microsoft's SqlServer module, which I can install machine-wide on the agents so pipelines get it with Import-Module SqlServer. That avoids loading DLLs manually. On conflicts: SqlServer shouldn't be imported in the same session as SQLPS or dbatools, since they ship different SqlClient versions. Is the SqlServer module OK for what you're doing, or do you need a specific SqlClient version?
+<#
+.SYNOPSIS
+    Reports Entra ID app registration (and optionally enterprise app) secrets and certificates
+    that are expiring soon or recently expired, and optionally emails the results.
+
+.DESCRIPTION
+    Read-only against Entra ID. Calls Microsoft Graph REST directly (no Graph SDK modules needed).
+    Writes a CSV and HTML report to -OutputPath. Sends email only when -SendEmail is set.
+
+    A credential is reported only when the object has NO credential of the same type
+    (secret / certificate) valid beyond the reporting window. If someone has already added a
+    new secret, the old expiring one is not nagged about.
+
+    Required Graph APPLICATION permissions (admin consented):
+      Application.Read.All   - read app registrations / service principals and their owners
+      User.ReadBasic.All     - owner email addresses (only needed for -NotifyOwners)
+      Mail.Send              - only needed for -SendEmail (scope with an ApplicationAccessPolicy
+                               that includes -SenderMailbox, or sendMail returns 403)
+
+    Auth modes:
+      AzCli         Uses the current az login context, e.g. an AzureCLI@2 task on a
+                    workload identity federation service connection. No secret needed.
+      ClientSecret  Client credentials flow with -TenantId / -ClientId / -ClientSecret.
+
+    Rollout stages:
+      1. No -SendEmail                                  : prove read access, check the CSV
+      2. -SendEmail -OverrideRecipient you@dewr.gov.au  : prove Mail.Send, all mail goes to you
+      3. -SendEmail -ReportRecipients ... -NotifyOwners : live
+
+.EXAMPLE
+    .\Get-EntraCredentialExpiry.ps1 -AuthMode AzCli -IncludeServicePrincipals
+
+.EXAMPLE
+    .\Get-EntraCredentialExpiry.ps1 -AuthMode ClientSecret -TenantId <tid> -ClientId <cid> -ClientSecret $s `
+        -SendEmail -SenderMailbox automation@dewr.gov.au -ReportRecipients ITSecurity@dewr.gov.au `
+        -NotifyOwners -OverrideRecipient collin.mckeahnie@dewr.gov.au
+#>
+[CmdletBinding()]
+param(
+    [ValidateSet('AzCli', 'ClientSecret')]
+    [string]$AuthMode = 'AzCli',
+    [string]$TenantId,
+    [string]$ClientId,
+    [string]$ClientSecret,
+
+    [ValidateRange(1, 365)]
+    [int]$DaysAhead = 30,
+    [ValidateRange(0, 3650)]
+    [int]$ExpiredLookbackDays = 30,
+    [switch]$IncludeServicePrincipals,
+
+    [string]$OutputPath = '.\credential-expiry-report',
+    [string]$TenantLabel,
+
+    [switch]$SendEmail,
+    [string]$SenderMailbox,
+    [string[]]$ReportRecipients,
+    [switch]$NotifyOwners,
+    [string]$OverrideRecipient,
+
+    # Optional separate identity for sending mail, for when the sender mailbox lives in a
+    # different tenant from the one being scanned. Defaults to the scanning identity.
+    [string]$MailTenantId,
+    [string]$MailClientId,
+    [string]$MailClientSecret
+)
+
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$GraphBase = 'https://graph.microsoft.com/v1.0'
+
+#region Helpers
+
+function Get-GraphToken {
+    param(
+        [string]$Mode,
+        [string]$Tenant,
+        [string]$Client,
+        [string]$Secret
+    )
+    if ($Mode -eq 'AzCli') {
+        $raw = & az account get-access-token --resource-type ms-graph --query accessToken -o tsv 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $raw) {
+            throw "az account get-access-token failed (exit $LASTEXITCODE). Check az login / service connection."
+        }
+        return (@($raw) | Where-Object { $_ -and $_.Trim() } | Select-Object -Last 1).Trim()
+    }
+
+    if (-not $Tenant -or -not $Client -or -not $Secret) {
+        throw 'ClientSecret auth requires tenant id, client id and client secret.'
+    }
+    $body = @{
+        client_id     = $Client
+        client_secret = $Secret
+        scope         = 'https://graph.microsoft.com/.default'
+        grant_type    = 'client_credentials'
+    }
+    try {
+        $r = Invoke-RestMethod -Method Post -Uri "https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token" `
+            -Body $body -ContentType 'application/x-www-form-urlencoded'
+    }
+    catch {
+        throw "Token request failed for client $Client in tenant ${Tenant}: $($_.ErrorDetails.Message)"
+    }
+    return $r.access_token
+}
+
+function Get-TokenClaims {
+    param([string]$Token)
+    $payload = $Token.Split('.')[1].Replace('-', '+').Replace('_', '/')
+    switch ($payload.Length % 4) {
+        2 { $payload += '==' }
+        3 { $payload += '=' }
+    }
+    return ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json)
+}
+
+function Test-TokenRoles {
+    param(
+        [string]$Token,
+        [string]$Purpose,
+        [string[][]]$RequiredAnyOf
+    )
+    $claims = Get-TokenClaims -Token $Token
+    $roles = @($claims.roles)
+    Write-Host "[$Purpose] tenant: $($claims.tid)  appid: $($claims.appid)  name: $($claims.app_displayname)"
+    Write-Host "[$Purpose] roles : $(if ($roles.Count) { $roles -join ', ' } else { '(none)' })"
+    foreach ($set in $RequiredAnyOf) {
+        $hit = $set | Where-Object { $roles -contains $_ }
+        if (-not $hit) {
+            throw "[$Purpose] token is missing a required application permission. Need one of: $($set -join ' / ')"
+        }
+    }
+    return $claims
+}
+
+function Invoke-Graph {
+    param(
+        [string]$Method = 'GET',
+        [string]$Uri,
+        [string]$Token,
+        $Body
+    )
+    $headers = @{ Authorization = "Bearer $Token" }
+    $attempt = 0
+    while ($true) {
+        $attempt++
+        try {
+            $p = @{ Method = $Method; Uri = $Uri; Headers = $headers }
+            if ($null -ne $Body) {
+                $p.Body = [Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
+                $p.ContentType = 'application/json; charset=utf-8'
+            }
+            return Invoke-RestMethod @p
+        }
+        catch {
+            $status = $null
+            $resp = $_.Exception.Response
+            if ($resp) { try { $status = [int]$resp.StatusCode } catch { } }
+
+            if (($status -eq 429 -or $status -ge 500) -and $attempt -lt 6) {
+                $wait = 5 * $attempt
+                try {
+                    $ra = $resp.Headers['Retry-After']
+                    if ($ra) { $wait = [int]$ra }
+                }
+                catch { }
+                Write-Warning "Graph returned $status, retrying in $wait s (attempt $attempt)"
+                Start-Sleep -Seconds $wait
+                continue
+            }
+
+            $detail = $_.ErrorDetails.Message
+            if (-not $detail -and $resp) {
+                try {
+                    $sr = New-Object IO.StreamReader($resp.GetResponseStream())
+                    $detail = $sr.ReadToEnd()
+                }
+                catch { }
+            }
+            if (-not $detail) { $detail = $_.Exception.Message }
+            throw "Graph $Method $Uri failed ($status): $detail"
+        }
+    }
+}
+
+function Get-GraphPaged {
+    param([string]$Uri, [string]$Token)
+    $out = New-Object System.Collections.Generic.List[object]
+    $next = $Uri
+    while ($next) {
+        $r = Invoke-Graph -Uri $next -Token $Token
+        foreach ($v in @($r.value)) { $out.Add($v) }
+        $next = $r.'@odata.nextLink'
+    }
+    return , $out
+}
+
+function ConvertTo-UtcDate {
+    param($Value)
+    if ($null -eq $Value -or "$Value" -eq '') { return $null }
+    if ($Value -is [datetime]) { return $Value.ToUniversalTime() }
+    return [DateTimeOffset]::Parse([string]$Value, [Globalization.CultureInfo]::InvariantCulture).UtcDateTime
+}
+
+function Get-OwnerInfo {
+    param([string]$ObjectType, [string]$ObjectId, [string]$Token)
+    $segment = if ($ObjectType -eq 'AppRegistration') { 'applications' } else { 'servicePrincipals' }
+    $owners = Get-GraphPaged -Uri "$GraphBase/$segment/$ObjectId/owners?`$select=id,displayName,mail,userPrincipalName" -Token $Token
+    $users = @($owners | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })
+    return [pscustomobject]@{
+        Names  = @($users | ForEach-Object { $_.displayName }) -join '; '
+        Emails = @($users | Where-Object { $_.mail } | ForEach-Object { $_.mail.ToLower() } | Sort-Object -Unique)
+    }
+}
+
+function ConvertTo-HtmlSafe {
+    param([string]$Text)
+    return [System.Net.WebUtility]::HtmlEncode($Text)
+}
+
+function New-ReportHtml {
+    param(
+        [string]$Title,
+        [string]$Intro,
+        [object[]]$Rows
+    )
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append(@"
+<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:10pt;color:#222">
+<h2 style="margin-bottom:4px">$(ConvertTo-HtmlSafe $Title)</h2>
+<p>$Intro</p>
+"@)
+    if (-not $Rows -or $Rows.Count -eq 0) {
+        [void]$sb.Append('<p><b>No credentials are expiring within the reporting window.</b></p>')
+    }
+    else {
+        [void]$sb.Append('<table style="border-collapse:collapse" cellpadding="4">')
+        [void]$sb.Append('<tr style="background:#1f3864;color:#fff;text-align:left"><th>Status</th><th>Days</th><th>Expires (UTC)</th><th>Name</th><th>Type</th><th>Credential</th><th>App ID</th><th>Owners</th></tr>')
+        foreach ($r in $Rows) {
+            $colour = switch ($r.Status) {
+                'Expired'  { '#f4cccc' }
+                'Critical' { '#fce5cd' }
+                default    { '#fff2cc' }
+            }
+            $cred = "$($r.CredentialType)$(if ($r.CredentialName) { ': ' + $r.CredentialName })"
+            [void]$sb.Append("<tr style=`"background:$colour;border-bottom:1px solid #ddd`">")
+            [void]$sb.Append("<td>$(ConvertTo-HtmlSafe $r.Status)</td>")
+            [void]$sb.Append("<td style=`"text-align:right`">$($r.DaysRemaining)</td>")
+            [void]$sb.Append("<td>$(ConvertTo-HtmlSafe $r.ExpiresUtc)</td>")
+            [void]$sb.Append("<td><a href=`"$(ConvertTo-HtmlSafe $r.PortalLink)`">$(ConvertTo-HtmlSafe $r.DisplayName)</a></td>")
+            [void]$sb.Append("<td>$(ConvertTo-HtmlSafe $r.ObjectType)</td>")
+            [void]$sb.Append("<td>$(ConvertTo-HtmlSafe $cred)</td>")
+            [void]$sb.Append("<td style=`"font-family:Consolas,monospace`">$(ConvertTo-HtmlSafe $r.AppId)</td>")
+            [void]$sb.Append("<td>$(ConvertTo-HtmlSafe $(if ($r.Owners) { $r.Owners } else { '(no owner)' }))</td>")
+            [void]$sb.Append('</tr>')
+        }
+        [void]$sb.Append('</table>')
+    }
+    [void]$sb.Append("<p style=`"color:#888;font-size:8pt`">Generated $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC by $(ConvertTo-HtmlSafe $env:COMPUTERNAME)$(if ($env:BUILD_BUILDID) { ', pipeline run ' + $env:BUILD_BUILDID }).</p>")
+    [void]$sb.Append('</body></html>')
+    return $sb.ToString()
+}
+
+function Send-GraphMail {
+    param(
+        [string]$Token,
+        [string]$From,
+        [string[]]$To,
+        [string]$Subject,
+        [string]$Html,
+        [string]$AttachmentPath
+    )
+    $message = @{
+        subject      = $Subject
+        body         = @{ contentType = 'HTML'; content = $Html }
+        toRecipients = @($To | ForEach-Object { @{ emailAddress = @{ address = $_ } } })
+    }
+    if ($AttachmentPath) {
+        $message.attachments = @(@{
+                '@odata.type' = '#microsoft.graph.fileAttachment'
+                name          = [IO.Path]::GetFileName($AttachmentPath)
+                contentType   = 'text/csv'
+                contentBytes  = [Convert]::ToBase64String([IO.File]::ReadAllBytes($AttachmentPath))
+            })
+    }
+    Invoke-Graph -Method POST -Uri "$GraphBase/users/$From/sendMail" -Token $Token `
+        -Body @{ message = $message; saveToSentItems = $false } | Out-Null
+}
+
+#endregion
+
+#region Validation
+
+if ($SendEmail) {
+    if (-not $SenderMailbox) { throw '-SendEmail requires -SenderMailbox.' }
+    if (-not $ReportRecipients -and -not $NotifyOwners) { throw '-SendEmail requires -ReportRecipients and/or -NotifyOwners.' }
+}
+if ($OverrideRecipient) { $OverrideRecipient = $OverrideRecipient.Trim() }
+
+#endregion
+
+#region Auth
+
+$readToken = Get-GraphToken -Mode $AuthMode -Tenant $TenantId -Client $ClientId -Secret $ClientSecret
+$readRequired = @(, @('Application.Read.All', 'Application.ReadWrite.All', 'Directory.Read.All'))
+if ($NotifyOwners) { $readRequired += , @('User.ReadBasic.All', 'User.Read.All', 'Directory.Read.All') }
+$readClaims = Test-TokenRoles -Token $readToken -Purpose 'read' -RequiredAnyOf $readRequired
+if (-not $TenantLabel) { $TenantLabel = $readClaims.tid }
+
+$mailToken = $null
+if ($SendEmail) {
+    if ($MailClientId) {
+        $mailToken = Get-GraphToken -Mode 'ClientSecret' -Tenant $MailTenantId -Client $MailClientId -Secret $MailClientSecret
+    }
+    else {
+        $mailToken = $readToken
+    }
+    [void](Test-TokenRoles -Token $mailToken -Purpose 'mail' -RequiredAnyOf @(, @('Mail.Send')))
+}
+
+#endregion
+
+#region Collect
+
+$nowUtc = (Get-Date).ToUniversalTime()
+$windowEnd = $nowUtc.AddDays($DaysAhead)
+$lookbackStart = $nowUtc.AddDays(-$ExpiredLookbackDays)
+
+$targets = New-Object System.Collections.Generic.List[object]
+
+Write-Host 'Reading app registrations...'
+$apps = Get-GraphPaged -Uri "$GraphBase/applications?`$select=id,appId,displayName,passwordCredentials,keyCredentials&`$top=999" -Token $readToken
+Write-Host "  $($apps.Count) app registrations"
+foreach ($a in $apps) {
+    $targets.Add([pscustomobject]@{ ObjectType = 'AppRegistration'; Obj = $a })
+}
+
+if ($IncludeServicePrincipals) {
+    Write-Host 'Reading service principals...'
+    $sps = Get-GraphPaged -Uri "$GraphBase/servicePrincipals?`$select=id,appId,displayName,servicePrincipalType,passwordCredentials,keyCredentials&`$top=999" -Token $readToken
+    # Managed identity certs are platform-rotated; skip them and anything with no credentials.
+    $spWithCreds = @($sps | Where-Object {
+            $_.servicePrincipalType -ne 'ManagedIdentity' -and
+            (@($_.passwordCredentials).Count -gt 0 -or @($_.keyCredentials).Count -gt 0)
+        })
+    Write-Host "  $($sps.Count) service principals, $($spWithCreds.Count) with credentials"
+    foreach ($s in $spWithCreds) {
+        $targets.Add([pscustomobject]@{ ObjectType = 'EnterpriseApp'; Obj = $s })
+    }
+}
+
+$rows = New-Object System.Collections.Generic.List[object]
+
+foreach ($t in $targets) {
+    $o = $t.Obj
+    $creds = @()
+    foreach ($c in @($o.passwordCredentials)) {
+        if ($c) { $creds += [pscustomobject]@{ Type = 'Secret'; Name = $c.displayName; KeyId = $c.keyId; Thumb = $c.hint; End = (ConvertTo-UtcDate $c.endDateTime) } }
+    }
+    foreach ($c in @($o.keyCredentials)) {
+        if ($c) { $creds += [pscustomobject]@{ Type = 'Certificate'; Name = $c.displayName; KeyId = $c.keyId; Thumb = $c.customKeyIdentifier; End = (ConvertTo-UtcDate $c.endDateTime) } }
+    }
+    if ($creds.Count -eq 0) { continue }
+
+    foreach ($grp in ($creds | Where-Object { $_.End } | Group-Object Type)) {
+        # Measure-Object -Maximum is numeric-only in PS 5.1, so sort instead
+        $latest = ($grp.Group | Sort-Object -Property End -Descending | Select-Object -First 1).End
+        if ($latest -gt $windowEnd) { continue }   # already has a credential of this type valid past the window
+
+        # SAML signing certs appear twice (Sign + Verify); de-dupe on thumbprint + end date.
+        $flagged = $grp.Group |
+            Where-Object { $_.End -ge $lookbackStart -and $_.End -le $windowEnd } |
+            Sort-Object -Property @{ Expression = { "$($_.Thumb)|$($_.End.ToString('o'))" } } -Unique
+
+        foreach ($c in $flagged) {
+            $days = ($c.End.Date - $nowUtc.Date).Days
+            $status = if ($c.End -lt $nowUtc) { 'Expired' } elseif ($days -le 7) { 'Critical' } else { 'Warning' }
+            $link = if ($t.ObjectType -eq 'AppRegistration') {
+                "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/$($o.appId)"
+            }
+            else {
+                "https://portal.azure.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($o.id)/appId/$($o.appId)"
+            }
+            $rows.Add([pscustomobject]@{
+                    Tenant         = $TenantLabel
+                    Status         = $status
+                    DaysRemaining  = $days
+                    ExpiresUtc     = $c.End.ToString('yyyy-MM-dd HH:mm')
+                    DisplayName    = $o.displayName
+                    ObjectType     = $t.ObjectType
+                    CredentialType = $c.Type
+                    CredentialName = $c.Name
+                    KeyId          = $c.KeyId
+                    AppId          = $o.appId
+                    ObjectId       = $o.id
+                    Owners         = ''
+                    OwnerEmails    = ''
+                    PortalLink     = $link
+                })
+        }
+    }
+}
+
+Write-Host "Flagged credentials: $($rows.Count)"
+
+# Owner lookup only for flagged objects (keeps Graph calls down)
+$ownerCache = @{}
+foreach ($r in $rows) {
+    $key = "$($r.ObjectType)|$($r.ObjectId)"
+    if (-not $ownerCache.ContainsKey($key)) {
+        try {
+            $ownerCache[$key] = Get-OwnerInfo -ObjectType $r.ObjectType -ObjectId $r.ObjectId -Token $readToken
+        }
+        catch {
+            Write-Warning "Owner lookup failed for $($r.DisplayName): $_"
+            $ownerCache[$key] = [pscustomobject]@{ Names = ''; Emails = @() }
+        }
+    }
+    $r.Owners = $ownerCache[$key].Names
+    $r.OwnerEmails = ($ownerCache[$key].Emails -join '; ')
+}
+
+$sorted = @($rows | Sort-Object -Property @{ Expression = 'DaysRemaining'; Ascending = $true }, DisplayName)
+
+#endregion
+
+#region Output
+
+if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
+$stamp = $nowUtc.ToString('yyyyMMdd')
+$safeLabel = ($TenantLabel -replace '[^A-Za-z0-9\-_]', '_')
+$csvPath = Join-Path $OutputPath "credential-expiry_${safeLabel}_$stamp.csv"
+$htmlPath = Join-Path $OutputPath "credential-expiry_${safeLabel}_$stamp.html"
+
+$sorted | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+
+$expiredCount = @($sorted | Where-Object Status -eq 'Expired').Count
+$criticalCount = @($sorted | Where-Object Status -eq 'Critical').Count
+$warningCount = @($sorted | Where-Object Status -eq 'Warning').Count
+$noOwnerCount = @($sorted | Where-Object { -not $_.OwnerEmails } | Select-Object -ExpandProperty ObjectId -Unique).Count
+
+$summaryIntro = "Tenant <b>$(ConvertTo-HtmlSafe $TenantLabel)</b>. Credentials expiring within <b>$DaysAhead</b> days or expired within the last <b>$ExpiredLookbackDays</b> days, " +
+"where no replacement credential of the same type exists.<br/>" +
+"Expired: <b>$expiredCount</b> &nbsp; Critical (&le;7 days): <b>$criticalCount</b> &nbsp; Warning: <b>$warningCount</b> &nbsp; Objects with no contactable owner: <b>$noOwnerCount</b>"
+$summaryHtml = New-ReportHtml -Title 'Entra ID credential expiry report' -Intro $summaryIntro -Rows $sorted
+[IO.File]::WriteAllText($htmlPath, $summaryHtml, (New-Object Text.UTF8Encoding($false)))
+
+Write-Host "CSV : $csvPath"
+Write-Host "HTML: $htmlPath"
+Write-Host "Expired: $expiredCount  Critical: $criticalCount  Warning: $warningCount  NoOwner: $noOwnerCount"
+
+if ($env:TF_BUILD -and ($expiredCount + $criticalCount) -gt 0) {
+    Write-Host "##vso[task.logissue type=warning]$expiredCount expired and $criticalCount critical credentials in tenant $TenantLabel"
+}
+
+#endregion
+
+#region Email
+
+if ($SendEmail) {
+    $sent = 0
+
+    if ($ReportRecipients) {
+        $to = $ReportRecipients
+        $subject = "Entra credential expiry: $expiredCount expired, $criticalCount critical, $warningCount warning ($TenantLabel)"
+        if ($OverrideRecipient) {
+            $subject = "[TEST - for: $($to -join ', ')] $subject"
+            $to = @($OverrideRecipient)
+        }
+        Send-GraphMail -Token $mailToken -From $SenderMailbox -To $to -Subject $subject -Html $summaryHtml -AttachmentPath $csvPath
+        Write-Host "Summary sent to $($to -join ', ')"
+        $sent++
+    }
+
+    if ($NotifyOwners) {
+        $byOwner = @{}
+        foreach ($r in $sorted) {
+            foreach ($e in @($r.OwnerEmails -split ';\s*' | Where-Object { $_ })) {
+                if (-not $byOwner.ContainsKey($e)) { $byOwner[$e] = New-Object System.Collections.Generic.List[object] }
+                $byOwner[$e].Add($r)
+            }
+        }
+        foreach ($owner in ($byOwner.Keys | Sort-Object)) {
+            $ownerRows = @($byOwner[$owner])
+            $intro = "You are listed as an owner of the Entra ID application(s) below. These credentials expire within $DaysAhead days " +
+            "(or have already expired) and no replacement exists. Please raise a request with Cyber Security Services to rotate them " +
+            "and update any Key Vaults or configuration that use them."
+            $html = New-ReportHtml -Title 'Action required: application credentials expiring' -Intro $intro -Rows $ownerRows
+            $subject = "Action required: $($ownerRows.Count) Entra application credential(s) expiring"
+            $to = @($owner)
+            if ($OverrideRecipient) {
+                $subject = "[TEST - for: $owner] $subject"
+                $to = @($OverrideRecipient)
+            }
+            Send-GraphMail -Token $mailToken -From $SenderMailbox -To $to -Subject $subject -Html $html
+            $sent++
+        }
+        Write-Host "Owner notifications sent: $($byOwner.Count)$(if ($OverrideRecipient) { " (redirected to $OverrideRecipient)" })"
+    }
+
+    Write-Host "Emails sent: $sent"
+}
+
+#endregion
