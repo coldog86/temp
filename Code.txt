@@ -1,7 +1,29 @@
-Server:  edc-dns1.application.enet
-Address:  10.16.241.67
- 
-Non-authoritative answer:
-Name:    printakvaueaghcp.privatelink.vaultcore.azure.net
-Address:  10.85.219.45
-Aliases:  printakvaueaghcp.vault.azure.net
+printakvaueaghcp\.vault\.azure\.net
+printakvaueaghcp\.privatelink\.vaultcore\.azure\.net
+10\.85\.219\.45
+
+
+function ConvertFrom-UtcDate {
+    param(
+        $Value,
+        [string]$TimeZoneId   # e.g. 'AUS Eastern Standard Time'; omit to use the machine's local zone
+    )
+    if ($null -eq $Value -or "$Value" -eq '') { return $null }
+
+    if ($Value -is [datetime]) {
+        # Local stays as-is via ToUniversalTime; Utc/Unspecified are treated as UTC
+        if ($Value.Kind -eq [DateTimeKind]::Local) { $utc = $Value.ToUniversalTime() }
+        else { $utc = [datetime]::SpecifyKind($Value, [DateTimeKind]::Utc) }
+    }
+    else {
+        $utc = [DateTimeOffset]::Parse([string]$Value, [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal).UtcDateTime
+    }
+
+    if ($TimeZoneId) {
+        return [TimeZoneInfo]::ConvertTimeFromUtc($utc, [TimeZoneInfo]::FindSystemTimeZoneById($TimeZoneId))
+    }
+    return $utc.ToLocalTime()
+}
+
+
