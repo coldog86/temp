@@ -1,17 +1,283 @@
-printakvaueaghcp\.vault\.azure\.net
-printakvaueaghcp\.privatelink\.vaultcore\.azure\.net
-10\.85\.219\.45
+<#
+.SYNOPSIS
+    Federation migration tracker for Entra ID. Classifies every app registration by how it
+    authenticates (federated vs secret/certificate), suggests a migration path for the ones
+    still using secrets, and tracks progress between runs.
 
+.DESCRIPTION
+    Read-only. Calls Microsoft Graph REST directly (no SDK modules), using $batch for the
+    per-app federated credential and owner lookups.
+
+    Status per app registration:
+      Federated                  Has federated identity credentials (FICs), no active secret/cert
+      Federated + active secret  Has FICs AND an active secret/cert   -> quick win: remove it
+      Secret-based               Active secret/cert, no FICs          -> migration backlog
+      Expired credentials only   Only expired secrets/certs, no FICs  -> cleanup / decommission
+    With -IncludeServicePrincipals, also:
+      SAML signing cert          Enterprise app SAML cert (cannot be federated; known exception)
+      Credential on service principal  Secret/cert added directly to the SP (hidden from the
+                                       app registration blade in the portal)
+
+    Migration path hints (for non-federated apps), in priority order:
+      ADO service connection: convert to WIF   Confirmed via ADO REST (-AdoOrganizations)
+      Remove unused secret/cert                Already federated
+      Remove expired credentials / decommission
+      Azure-hosted: use managed identity       Redirect URI on an Azure PaaS host
+      Web/SaaS client: check vendor FIC support, else exception
+      Identify workload                        No signal; needs a human
+
+    Progress: pass -PreviousSnapshotPath (the federation-snapshot.csv from the last run) to
+    get "newly federated" and "new secret-based" changes.
+
+    Permissions:
+      Graph application: Application.Read.All (Mail.Send only if -SendEmail)
+      ADO (optional):    the identity must be a user in each org (Stakeholder is enough to list
+                         service connections it has Reader/User role on)
+
+.EXAMPLE
+    .\Get-EntraFederationStatus.ps1 -AuthMode AzCli -IncludeServicePrincipals `
+        -AdoOrganizations TechnologyandServicesDivision, lnwgovau
+#>
+[CmdletBinding()]
+param(
+    [ValidateSet('AzCli', 'ClientSecret')]
+    [string]$AuthMode = 'AzCli',
+    [string]$TenantId,
+    [string]$ClientId,
+    [string]$ClientSecret,
+
+    [switch]$IncludeServicePrincipals,
+    [string[]]$AdoOrganizations,
+
+    [string]$OutputPath = '.\federation-report',
+    [string]$PreviousSnapshotPath,
+    [string]$TenantLabel,
+    [string]$DisplayTimeZone = 'AUS Eastern Standard Time',
+
+    [switch]$SendEmail,
+    [string]$SenderMailbox,
+    [string[]]$ReportRecipients,
+    [string]$OverrideRecipient,
+
+    # Optional separate identity for sending mail (sender mailbox in a different tenant)
+    [string]$MailTenantId,
+    [string]$MailClientId,
+    [string]$MailClientSecret
+)
+
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+$GraphBase = 'https://graph.microsoft.com/v1.0'
+$GraphResource = 'https://graph.microsoft.com'
+$AdoResource = '499b84ac-1321-427f-aa17-267ca6975798'
+$AzureHostPattern = '\.(azurewebsites\.net|azurecontainerapps\.io|azurestaticapps\.net|cloudapp\.azure\.com|azure-api\.net|azurefd\.net|azuredatabricks\.net)$'
+
+$S_Fed = 'Federated'
+$S_FedSecret = 'Federated + active secret'
+$S_Secret = 'Secret-based'
+$S_Expired = 'Expired credentials only'
+$S_Saml = 'SAML signing cert'
+$S_SpCred = 'Credential on service principal'
+$StatusOrder = @($S_Secret, $S_FedSecret, $S_Expired, $S_SpCred, $S_Saml, $S_Fed)
+
+$P_Ado = 'ADO service connection: convert to WIF'
+$P_RemoveSecret = 'Remove unused secret/cert'
+$P_RemoveExpired = 'Remove expired credentials / decommission'
+$P_Azure = 'Azure-hosted: use managed identity'
+$P_Web = 'Web/SaaS client: check vendor FIC support, else exception'
+$P_Unknown = 'Identify workload'
+$P_Saml = 'Not federatable (SAML) - known exception'
+$P_SpCred = 'Move to app registration FIC or remove'
+$QuickWinPaths = @($P_Ado, $P_RemoveSecret, $P_RemoveExpired)
+
+#region Helpers
+
+function Get-AccessToken {
+    param(
+        [string]$Mode,
+        [string]$Resource,
+        [string]$Tenant,
+        [string]$Client,
+        [string]$Secret
+    )
+    if ($Mode -eq 'AzCli') {
+        $raw = & az account get-access-token --resource $Resource --query accessToken -o tsv 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $raw) {
+            throw "az account get-access-token --resource $Resource failed (exit $LASTEXITCODE)."
+        }
+        return (@($raw) | Where-Object { $_ -and $_.Trim() } | Select-Object -Last 1).Trim()
+    }
+
+    if (-not $Tenant -or -not $Client -or -not $Secret) {
+        throw 'ClientSecret auth requires tenant id, client id and client secret.'
+    }
+    $body = @{
+        client_id     = $Client
+        client_secret = $Secret
+        scope         = "$Resource/.default"
+        grant_type    = 'client_credentials'
+    }
+    try {
+        $r = Invoke-RestMethod -Method Post -Uri "https://login.microsoftonline.com/$Tenant/oauth2/v2.0/token" `
+            -Body $body -ContentType 'application/x-www-form-urlencoded'
+    }
+    catch {
+        throw "Token request failed for client $Client in tenant ${Tenant}: $($_.ErrorDetails.Message)"
+    }
+    return $r.access_token
+}
+
+function Get-TokenClaims {
+    param([string]$Token)
+    $payload = $Token.Split('.')[1].Replace('-', '+').Replace('_', '/')
+    switch ($payload.Length % 4) {
+        2 { $payload += '==' }
+        3 { $payload += '=' }
+    }
+    return ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json)
+}
+
+function Test-TokenRoles {
+    param(
+        [string]$Token,
+        [string]$Purpose,
+        [string[][]]$RequiredAnyOf
+    )
+    $claims = Get-TokenClaims -Token $Token
+    $roles = @($claims.roles)
+    Write-Host "[$Purpose] tenant: $($claims.tid)  appid: $($claims.appid)  name: $($claims.app_displayname)"
+    Write-Host "[$Purpose] roles : $(if ($roles.Count) { $roles -join ', ' } else { '(none)' })"
+    foreach ($set in $RequiredAnyOf) {
+        $hit = $set | Where-Object { $roles -contains $_ }
+        if (-not $hit) {
+            throw "[$Purpose] token is missing a required application permission. Need one of: $($set -join ' / ')"
+        }
+    }
+    return $claims
+}
+
+function Invoke-Graph {
+    param(
+        [string]$Method = 'GET',
+        [string]$Uri,
+        [string]$Token,
+        $Body
+    )
+    $headers = @{ Authorization = "Bearer $Token" }
+    $attempt = 0
+    while ($true) {
+        $attempt++
+        try {
+            $p = @{ Method = $Method; Uri = $Uri; Headers = $headers }
+            if ($null -ne $Body) {
+                $p.Body = [Text.Encoding]::UTF8.GetBytes(($Body | ConvertTo-Json -Depth 20))
+                $p.ContentType = 'application/json; charset=utf-8'
+            }
+            return Invoke-RestMethod @p
+        }
+        catch {
+            $status = $null
+            $resp = $_.Exception.Response
+            if ($resp) { try { $status = [int]$resp.StatusCode } catch { } }
+
+            if (($status -eq 429 -or $status -ge 500) -and $attempt -lt 6) {
+                $wait = 5 * $attempt
+                try {
+                    $ra = $resp.Headers['Retry-After']
+                    if ($ra) { $wait = [int]$ra }
+                }
+                catch { }
+                Write-Warning "Graph returned $status, retrying in $wait s (attempt $attempt)"
+                Start-Sleep -Seconds $wait
+                continue
+            }
+
+            $detail = $_.ErrorDetails.Message
+            if (-not $detail -and $resp) {
+                try {
+                    $sr = New-Object IO.StreamReader($resp.GetResponseStream())
+                    $detail = $sr.ReadToEnd()
+                }
+                catch { }
+            }
+            if (-not $detail) { $detail = $_.Exception.Message }
+            throw "Graph $Method $Uri failed ($status): $detail"
+        }
+    }
+}
+
+function Get-GraphPaged {
+    param([string]$Uri, [string]$Token)
+    $out = New-Object System.Collections.Generic.List[object]
+    $next = $Uri
+    while ($next) {
+        $r = Invoke-Graph -Uri $next -Token $Token
+        foreach ($v in @($r.value)) { $out.Add($v) }
+        $next = $r.'@odata.nextLink'
+    }
+    return , $out
+}
+
+# Runs GET requests through Graph $batch, 20 per call. Input: objects with .id and relative .url.
+# Returns hashtable id -> response body ($null on non-retryable failure).
+function Invoke-GraphBatch {
+    param([object[]]$Requests, [string]$Token)
+    $results = @{}
+    $queue = @($Requests)
+    $round = 0
+    while ($queue.Count -gt 0) {
+        $round++
+        if ($round -gt 6) {
+            foreach ($q in $queue) { Write-Warning "Batch request $($q.url) gave up after retries"; $results[[string]$q.id] = $null }
+            break
+        }
+        $retry = New-Object System.Collections.Generic.List[object]
+        $retryAfter = 0
+        for ($i = 0; $i -lt $queue.Count; $i += 20) {
+            $chunk = @($queue[$i..([Math]::Min($i + 19, $queue.Count - 1))])
+            $body = @{ requests = @($chunk | ForEach-Object { @{ id = [string]$_.id; method = 'GET'; url = $_.url } }) }
+            $resp = Invoke-Graph -Method POST -Uri "$GraphBase/`$batch" -Token $Token -Body $body
+            foreach ($r in @($resp.responses)) {
+                $st = [int]$r.status
+                $rid = [string]$r.id
+                if ($st -ge 200 -and $st -lt 300) {
+                    $results[$rid] = $r.body
+                }
+                elseif ($st -eq 429 -or $st -ge 500) {
+                    $retry.Add(($chunk | Where-Object { [string]$_.id -eq $rid } | Select-Object -First 1))
+                    $ra = 0
+                    try { $ra = [int]$r.headers.'Retry-After' } catch { }
+                    if ($ra -gt $retryAfter) { $retryAfter = $ra }
+                }
+                else {
+                    $msg = $null
+                    try { $msg = $r.body.error.message } catch { }
+                    Write-Warning "Batch request ${rid} returned ${st}: $msg"
+                    $results[$rid] = $null
+                }
+            }
+        }
+        $queue = @($retry.ToArray())
+        if ($queue.Count -gt 0) { Start-Sleep -Seconds ([Math]::Max($retryAfter, 5)) }
+    }
+    return $results
+}
+
+function ConvertTo-UtcDate {
+    param($Value)
+    if ($null -eq $Value -or "$Value" -eq '') { return $null }
+    if ($Value -is [datetime]) { return $Value.ToUniversalTime() }
+    return [DateTimeOffset]::Parse([string]$Value, [Globalization.CultureInfo]::InvariantCulture).UtcDateTime
+}
 
 function ConvertFrom-UtcDate {
     param(
         $Value,
-        [string]$TimeZoneId   # e.g. 'AUS Eastern Standard Time'; omit to use the machine's local zone
+        [string]$TimeZoneId
     )
     if ($null -eq $Value -or "$Value" -eq '') { return $null }
-
     if ($Value -is [datetime]) {
-        # Local stays as-is via ToUniversalTime; Utc/Unspecified are treated as UTC
         if ($Value.Kind -eq [DateTimeKind]::Local) { $utc = $Value.ToUniversalTime() }
         else { $utc = [datetime]::SpecifyKind($Value, [DateTimeKind]::Utc) }
     }
@@ -19,11 +285,461 @@ function ConvertFrom-UtcDate {
         $utc = [DateTimeOffset]::Parse([string]$Value, [Globalization.CultureInfo]::InvariantCulture,
             [Globalization.DateTimeStyles]::AssumeUniversal).UtcDateTime
     }
-
     if ($TimeZoneId) {
         return [TimeZoneInfo]::ConvertTimeFromUtc($utc, [TimeZoneInfo]::FindSystemTimeZoneById($TimeZoneId))
     }
     return $utc.ToLocalTime()
 }
 
+function Format-DisplayDate {
+    param($UtcValue)
+    if ($null -eq $UtcValue) { return '' }
+    try { return (ConvertFrom-UtcDate -Value $UtcValue -TimeZoneId $script:DisplayTz).ToString('yyyy-MM-dd') }
+    catch { return (ConvertTo-UtcDate $UtcValue).ToString('yyyy-MM-dd') }
+}
 
+function Get-CredentialSummary {
+    param($Object, [datetime]$NowUtc)
+    $all = @()
+    foreach ($c in @($Object.passwordCredentials)) { if ($c) { $all += [pscustomobject]@{ Type = 'Secret'; Usage = ''; End = (ConvertTo-UtcDate $c.endDateTime) } } }
+    foreach ($c in @($Object.keyCredentials)) { if ($c) { $all += [pscustomobject]@{ Type = 'Certificate'; Usage = $c.usage; End = (ConvertTo-UtcDate $c.endDateTime) } } }
+    $active = @($all | Where-Object { $_.End -and $_.End -gt $NowUtc })
+    $next = $null
+    if ($active.Count) { $next = ($active | Sort-Object End | Select-Object -First 1).End }
+    return [pscustomobject]@{
+        Total         = $all.Count
+        ActiveSecrets = @($active | Where-Object Type -eq 'Secret').Count
+        ActiveCerts   = @($active | Where-Object Type -eq 'Certificate').Count
+        ActiveSigning = @($active | Where-Object { $_.Type -eq 'Certificate' -and $_.Usage -eq 'Sign' }).Count
+        Expired       = @($all | Where-Object { $_.End -and $_.End -le $NowUtc }).Count
+        NextExpiry    = $next
+    }
+}
+
+function Get-RedirectHosts {
+    param($App)
+    $uris = @()
+    foreach ($section in @($App.web, $App.spa, $App.publicClient)) {
+        if ($section -and $section.redirectUris) { $uris += @($section.redirectUris) }
+    }
+    $hosts = foreach ($u in $uris) {
+        try { ([uri]$u).Host.ToLower() } catch { }
+    }
+    return @($hosts | Where-Object { $_ } | Sort-Object -Unique)
+}
+
+function Get-AdoServiceConnectionMap {
+    param([string[]]$Organizations, [string]$Token)
+    $map = @{}
+    $headers = @{ Authorization = "Bearer $Token" }
+    foreach ($org in $Organizations) {
+        try {
+            $projects = Invoke-RestMethod -Uri "https://dev.azure.com/$org/_apis/projects?api-version=7.1&`$top=1000" -Headers $headers
+            if ($projects -is [string]) { throw 'not authorised (sign-in page returned); is the identity a user in this org?' }
+        }
+        catch {
+            Write-Warning "ADO org ${org}: project list failed: $_"
+            continue
+        }
+        $count = 0
+        foreach ($p in @($projects.value)) {
+            try {
+                $eps = Invoke-RestMethod -Uri "https://dev.azure.com/$org/$($p.id)/_apis/serviceendpoint/endpoints?type=azurerm&api-version=7.1" -Headers $headers
+                if ($eps -is [string]) { continue }
+            }
+            catch {
+                Write-Warning "ADO $org/$($p.name): service connection list failed: $($_.Exception.Message)"
+                continue
+            }
+            foreach ($ep in @($eps.value)) {
+                $spId = $null
+                try { $spId = $ep.authorization.parameters.serviceprincipalid } catch { }
+                if (-not $spId) { continue }
+                $key = $spId.ToLower()
+                if (-not $map.ContainsKey($key)) { $map[$key] = New-Object System.Collections.Generic.List[object] }
+                $map[$key].Add([pscustomobject]@{
+                        Org     = $org
+                        Project = $p.name
+                        Name    = $ep.name
+                        Scheme  = $ep.authorization.scheme
+                    })
+                $count++
+            }
+        }
+        Write-Host "  ADO ${org}: $(@($projects.value).Count) projects, $count AzureRM service connections"
+    }
+    return $map
+}
+
+function ConvertTo-HtmlSafe {
+    param([string]$Text)
+    return [System.Net.WebUtility]::HtmlEncode($Text)
+}
+
+function New-HtmlTable {
+    param([object[]]$Rows, [string[]]$Columns, [int]$Max = 0)
+    if (-not $Rows -or $Rows.Count -eq 0) { return '<p><i>None.</i></p>' }
+    $show = $Rows
+    if ($Max -gt 0 -and $Rows.Count -gt $Max) { $show = $Rows[0..($Max - 1)] }
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('<table style="border-collapse:collapse" cellpadding="4"><tr style="background:#1f3864;color:#fff;text-align:left">')
+    foreach ($c in $Columns) { [void]$sb.Append("<th>$(ConvertTo-HtmlSafe $c)</th>") }
+    [void]$sb.Append('</tr>')
+    $alt = $false
+    foreach ($r in $show) {
+        $bg = if ($alt) { '#f2f2f2' } else { '#ffffff' }
+        $alt = -not $alt
+        [void]$sb.Append("<tr style=`"background:$bg`">")
+        foreach ($c in $Columns) {
+            if ($c -eq 'DisplayName' -and $r.PortalLink) {
+                [void]$sb.Append("<td><a href=`"$(ConvertTo-HtmlSafe $r.PortalLink)`">$(ConvertTo-HtmlSafe $r.DisplayName)</a></td>")
+            }
+            else {
+                [void]$sb.Append("<td>$(ConvertTo-HtmlSafe ([string]$r.$c))</td>")
+            }
+        }
+        [void]$sb.Append('</tr>')
+    }
+    [void]$sb.Append('</table>')
+    if ($show.Count -lt $Rows.Count) {
+        [void]$sb.Append("<p style=`"color:#666`">Showing $($show.Count) of $($Rows.Count). Full list in the attached CSV.</p>")
+    }
+    return $sb.ToString()
+}
+
+function Send-GraphMail {
+    param(
+        [string]$Token,
+        [string]$From,
+        [string[]]$To,
+        [string]$Subject,
+        [string]$Html,
+        [string]$AttachmentPath
+    )
+    $message = @{
+        subject      = $Subject
+        body         = @{ contentType = 'HTML'; content = $Html }
+        toRecipients = @($To | ForEach-Object { @{ emailAddress = @{ address = $_ } } })
+    }
+    if ($AttachmentPath) {
+        $message.attachments = @(@{
+                '@odata.type' = '#microsoft.graph.fileAttachment'
+                name          = [IO.Path]::GetFileName($AttachmentPath)
+                contentType   = 'text/csv'
+                contentBytes  = [Convert]::ToBase64String([IO.File]::ReadAllBytes($AttachmentPath))
+            })
+    }
+    Invoke-Graph -Method POST -Uri "$GraphBase/users/$From/sendMail" -Token $Token `
+        -Body @{ message = $message; saveToSentItems = $false } | Out-Null
+}
+
+#endregion
+
+#region Validation and auth
+
+if ($SendEmail) {
+    if (-not $SenderMailbox) { throw '-SendEmail requires -SenderMailbox.' }
+    if (-not $ReportRecipients) { throw '-SendEmail requires -ReportRecipients.' }
+}
+if ($OverrideRecipient) { $OverrideRecipient = $OverrideRecipient.Trim() }
+$script:DisplayTz = $DisplayTimeZone
+
+$readToken = Get-AccessToken -Mode $AuthMode -Resource $GraphResource -Tenant $TenantId -Client $ClientId -Secret $ClientSecret
+$readClaims = Test-TokenRoles -Token $readToken -Purpose 'read' -RequiredAnyOf @(, @('Application.Read.All', 'Application.ReadWrite.All', 'Directory.Read.All'))
+$scanTenantId = $readClaims.tid
+if (-not $TenantLabel) { $TenantLabel = $scanTenantId }
+
+$mailToken = $null
+if ($SendEmail) {
+    if ($MailClientId) {
+        $mailToken = Get-AccessToken -Mode 'ClientSecret' -Resource $GraphResource -Tenant $MailTenantId -Client $MailClientId -Secret $MailClientSecret
+    }
+    else {
+        $mailToken = $readToken
+    }
+    [void](Test-TokenRoles -Token $mailToken -Purpose 'mail' -RequiredAnyOf @(, @('Mail.Send')))
+}
+
+#endregion
+
+#region Collect
+
+$nowUtc = (Get-Date).ToUniversalTime()
+
+Write-Host 'Reading app registrations...'
+$apps = Get-GraphPaged -Uri "$GraphBase/applications?`$select=id,appId,displayName,createdDateTime,passwordCredentials,keyCredentials,web,spa,publicClient&`$top=999" -Token $readToken
+Write-Host "  $($apps.Count) app registrations"
+
+Write-Host 'Reading federated identity credentials...'
+$ficRequests = for ($i = 0; $i -lt $apps.Count; $i++) {
+    [pscustomobject]@{ id = "$i"; url = "/applications/$($apps[$i].id)/federatedIdentityCredentials?`$select=name,issuer,subject" }
+}
+$ficResults = @{}
+if ($apps.Count) { $ficResults = Invoke-GraphBatch -Requests @($ficRequests) -Token $readToken }
+
+$adoMap = @{}
+if ($AdoOrganizations) {
+    Write-Host 'Reading Azure DevOps service connections...'
+    try {
+        $adoToken = Get-AccessToken -Mode $AuthMode -Resource $AdoResource -Tenant $TenantId -Client $ClientId -Secret $ClientSecret
+        $adoMap = Get-AdoServiceConnectionMap -Organizations $AdoOrganizations -Token $adoToken
+    }
+    catch {
+        Write-Warning "ADO lookup skipped: $_"
+    }
+}
+
+$rows = New-Object System.Collections.Generic.List[object]
+
+for ($i = 0; $i -lt $apps.Count; $i++) {
+    $a = $apps[$i]
+    $cred = Get-CredentialSummary -Object $a -NowUtc $nowUtc
+    $fics = @()
+    if ($ficResults.ContainsKey("$i") -and $ficResults["$i"]) { $fics = @($ficResults["$i"].value) }
+    $active = $cred.ActiveSecrets + $cred.ActiveCerts
+
+    if ($fics.Count -gt 0 -and $active -eq 0) { $status = $S_Fed }
+    elseif ($fics.Count -gt 0) { $status = $S_FedSecret }
+    elseif ($active -gt 0) { $status = $S_Secret }
+    elseif ($cred.Expired -gt 0) { $status = $S_Expired }
+    else { continue }   # no credentials of any kind: public client, SAML-only app object, etc.
+
+    $hosts = Get-RedirectHosts -App $a
+    $ado = @()
+    if ($adoMap.ContainsKey($a.appId.ToLower())) { $ado = $adoMap[$a.appId.ToLower()].ToArray() }
+    $adoSecret = @($ado | Where-Object { $_.Scheme -eq 'ServicePrincipal' })
+
+    $path = ''
+    $evidence = ''
+    if ($status -ne $S_Fed) {
+        if ($adoSecret.Count) {
+            $path = $P_Ado
+            $evidence = "$($adoSecret.Count) secret-based ADO connection(s)"
+        }
+        elseif ($status -eq $S_FedSecret) {
+            $path = $P_RemoveSecret
+            $evidence = "$($fics.Count) FIC(s) present"
+        }
+        elseif ($status -eq $S_Expired) {
+            $path = $P_RemoveExpired
+            $evidence = "$($cred.Expired) expired credential(s), nothing active"
+        }
+        elseif (@($hosts | Where-Object { $_ -match $AzureHostPattern }).Count) {
+            $path = $P_Azure
+            $evidence = 'Redirect: ' + ((@($hosts | Where-Object { $_ -match $AzureHostPattern }) | Select-Object -First 3) -join ', ')
+        }
+        elseif ($hosts.Count) {
+            $path = $P_Web
+            $evidence = 'Redirect: ' + (($hosts | Select-Object -First 3) -join ', ')
+        }
+        else {
+            $path = $P_Unknown
+            $evidence = 'No redirect URIs or ADO match'
+        }
+    }
+
+    $ficIssuers = @($fics | ForEach-Object { try { ([uri]$_.issuer).Host } catch { $_.issuer } } | Sort-Object -Unique) -join '; '
+
+    $rows.Add([pscustomobject]@{
+            Tenant         = $TenantLabel
+            Status         = $status
+            MigrationPath  = $path
+            Evidence       = $evidence
+            ObjectType     = 'AppRegistration'
+            DisplayName    = $a.displayName
+            AppId          = $a.appId
+            ObjectId       = $a.id
+            ActiveSecrets  = $cred.ActiveSecrets
+            ActiveCerts    = $cred.ActiveCerts
+            ExpiredCreds   = $cred.Expired
+            NextExpiry     = Format-DisplayDate $cred.NextExpiry
+            FicCount       = $fics.Count
+            FicIssuers     = $ficIssuers
+            AdoConnections = (@($ado | ForEach-Object { "$($_.Org)/$($_.Project)/$($_.Name) [$($_.Scheme)]" }) -join '; ')
+            Owners         = ''
+            Created        = Format-DisplayDate $a.createdDateTime
+            Change         = ''
+            PortalLink     = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/$($a.appId)"
+        })
+}
+
+if ($IncludeServicePrincipals) {
+    Write-Host 'Reading service principals...'
+    $sps = Get-GraphPaged -Uri "$GraphBase/servicePrincipals?`$select=id,appId,displayName,servicePrincipalType,preferredSingleSignOnMode,passwordCredentials,keyCredentials&`$top=999" -Token $readToken
+    $spCount = 0
+    foreach ($s in $sps) {
+        if ($s.servicePrincipalType -eq 'ManagedIdentity') { continue }
+        $cred = Get-CredentialSummary -Object $s -NowUtc $nowUtc
+        if (($cred.ActiveSecrets + $cred.ActiveCerts) -eq 0) { continue }
+
+        if ($s.preferredSingleSignOnMode -eq 'saml' -or ($cred.ActiveSigning -gt 0 -and $cred.ActiveSecrets -eq 0)) {
+            $status = $S_Saml; $path = $P_Saml; $evidence = 'SAML token signing certificate'
+        }
+        else {
+            $status = $S_SpCred; $path = $P_SpCred; $evidence = 'Not visible in app registration blade'
+        }
+        $spCount++
+        $rows.Add([pscustomobject]@{
+                Tenant         = $TenantLabel
+                Status         = $status
+                MigrationPath  = $path
+                Evidence       = $evidence
+                ObjectType     = 'EnterpriseApp'
+                DisplayName    = $s.displayName
+                AppId          = $s.appId
+                ObjectId       = $s.id
+                ActiveSecrets  = $cred.ActiveSecrets
+                ActiveCerts    = $cred.ActiveCerts
+                ExpiredCreds   = $cred.Expired
+                NextExpiry     = Format-DisplayDate $cred.NextExpiry
+                FicCount       = 0
+                FicIssuers     = ''
+                AdoConnections = ''
+                Owners         = ''
+                Created        = ''
+                Change         = ''
+                PortalLink     = "https://portal.azure.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($s.id)/appId/$($s.appId)"
+            })
+    }
+    Write-Host "  $($sps.Count) service principals, $spCount with active credentials (excluding managed identities)"
+}
+
+# Owners for everything not yet federated: that's the chase list
+$needOwners = @($rows | Where-Object { $_.Status -ne $S_Fed -and $_.Status -ne $S_Saml })
+if ($needOwners.Count) {
+    Write-Host "Reading owners for $($needOwners.Count) objects..."
+    $ownerRequests = for ($i = 0; $i -lt $needOwners.Count; $i++) {
+        $seg = if ($needOwners[$i].ObjectType -eq 'AppRegistration') { 'applications' } else { 'servicePrincipals' }
+        [pscustomobject]@{ id = "$i"; url = "/$seg/$($needOwners[$i].ObjectId)/owners?`$select=displayName,userPrincipalName" }
+    }
+    $ownerResults = Invoke-GraphBatch -Requests @($ownerRequests) -Token $readToken
+    for ($i = 0; $i -lt $needOwners.Count; $i++) {
+        if ($ownerResults.ContainsKey("$i") -and $ownerResults["$i"]) {
+            $names = @($ownerResults["$i"].value | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' } |
+                ForEach-Object { if ($_.userPrincipalName) { "$($_.displayName) <$($_.userPrincipalName)>" } else { $_.displayName } })
+            $needOwners[$i].Owners = $names -join '; '
+        }
+    }
+}
+
+#endregion
+
+#region Compare with previous snapshot
+
+$hasPrevious = $false
+$newlyFederated = @()
+$newSecretBased = @()
+$removed = @()
+if ($PreviousSnapshotPath -and (Test-Path $PreviousSnapshotPath)) {
+    $hasPrevious = $true
+    $prev = @(Import-Csv -Path $PreviousSnapshotPath)
+    $prevById = @{}
+    foreach ($p in $prev) { $prevById[$p.ObjectId] = $p }
+    $currentIds = @{}
+    foreach ($r in $rows) {
+        $currentIds[$r.ObjectId] = $true
+        if (-not $prevById.ContainsKey($r.ObjectId)) {
+            $r.Change = 'New'
+        }
+        elseif ($prevById[$r.ObjectId].Status -ne $r.Status) {
+            $r.Change = "Was: $($prevById[$r.ObjectId].Status)"
+        }
+    }
+    $newlyFederated = @($rows | Where-Object { $_.Status -eq $S_Fed -and $_.Change })
+    $newSecretBased = @($rows | Where-Object { $_.Status -eq $S_Secret -and $_.Change })
+    $removed = @($prev | Where-Object { -not $currentIds.ContainsKey($_.ObjectId) -and $_.Status -ne $S_Fed })
+    Write-Host "Compared with previous snapshot ($($prev.Count) rows)"
+}
+elseif ($PreviousSnapshotPath) {
+    Write-Host "No previous snapshot at $PreviousSnapshotPath; this run becomes the baseline."
+}
+
+#endregion
+
+#region Output
+
+$rank = @{}
+for ($i = 0; $i -lt $StatusOrder.Count; $i++) { $rank[$StatusOrder[$i]] = $i }
+$sorted = @($rows | Sort-Object -Property @{ Expression = { $rank[$_.Status] } }, MigrationPath, DisplayName)
+
+if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
+$stamp = $nowUtc.ToString('yyyyMMdd')
+$safeLabel = ($TenantLabel -replace '[^A-Za-z0-9\-_]', '_')
+$csvPath = Join-Path $OutputPath "federation-status_${safeLabel}_$stamp.csv"
+$htmlPath = Join-Path $OutputPath "federation-status_${safeLabel}_$stamp.html"
+$snapshotPath = Join-Path $OutputPath 'federation-snapshot.csv'
+
+$sorted | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+$sorted | Export-Csv -Path $snapshotPath -NoTypeInformation -Encoding UTF8
+
+# Status counts
+$statusCounts = foreach ($s in $StatusOrder) {
+    $n = @($sorted | Where-Object Status -eq $s).Count
+    if ($n -eq 0 -and ($s -eq $S_Saml -or $s -eq $S_SpCred) -and -not $IncludeServicePrincipals) { continue }
+    $delta = ''
+    if ($hasPrevious) {
+        $was = @($prev | Where-Object Status -eq $s).Count
+        $d = $n - $was
+        $delta = if ($d -gt 0) { "+$d" } elseif ($d -lt 0) { "$d" } else { '0' }
+    }
+    [pscustomobject]@{ Status = $s; Count = $n; 'Change since last run' = $delta }
+}
+
+$appRows = @($sorted | Where-Object ObjectType -eq 'AppRegistration')
+$fedCount = @($appRows | Where-Object Status -eq $S_Fed).Count
+$pct = if ($appRows.Count) { [Math]::Round(100 * $fedCount / $appRows.Count, 1) } else { 0 }
+
+$pathCounts = @($sorted | Where-Object { $_.MigrationPath -and $_.Status -ne $S_Saml } | Group-Object MigrationPath |
+    Sort-Object Count -Descending | ForEach-Object { [pscustomobject]@{ 'Migration path' = $_.Name; Apps = $_.Count } })
+
+$quickWins = @($sorted | Where-Object { $QuickWinPaths -contains $_.MigrationPath })
+
+$cols = @('DisplayName', 'Status', 'MigrationPath', 'Evidence', 'NextExpiry', 'Owners')
+$html = New-Object System.Text.StringBuilder
+[void]$html.Append(@"
+<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:10pt;color:#222">
+<h2 style="margin-bottom:4px">Entra ID federation status</h2>
+<p>Tenant <b>$(ConvertTo-HtmlSafe $TenantLabel)</b>. <b>$fedCount</b> of <b>$($appRows.Count)</b> app registrations with credentials are fully federated (<b>$pct%</b>).</p>
+<h3>Status</h3>
+$(New-HtmlTable -Rows @($statusCounts) -Columns $(if ($hasPrevious) { @('Status', 'Count', 'Change since last run') } else { @('Status', 'Count') }))
+<h3>Remaining work by migration path</h3>
+$(New-HtmlTable -Rows $pathCounts -Columns @('Migration path', 'Apps'))
+<h3>Quick wins</h3>
+<p>ADO connections that convert in place, secrets left behind on already-federated apps, and apps with nothing but expired credentials.</p>
+$(New-HtmlTable -Rows $quickWins -Columns $cols -Max 50)
+"@)
+if ($hasPrevious) {
+    [void]$html.Append("<h3>Newly federated since last run ($($newlyFederated.Count))</h3>")
+    [void]$html.Append((New-HtmlTable -Rows $newlyFederated -Columns @('DisplayName', 'Change') -Max 25))
+    [void]$html.Append("<h3>New secret-based apps since last run ($($newSecretBased.Count))</h3>")
+    [void]$html.Append((New-HtmlTable -Rows $newSecretBased -Columns @('DisplayName', 'Change', 'MigrationPath', 'Owners', 'Created') -Max 25))
+    [void]$html.Append("<p>Removed or cleared since last run (deleted, or no credentials left): <b>$($removed.Count)</b></p>")
+}
+[void]$html.Append("<p style=`"color:#888;font-size:8pt`">Generated $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm')) UTC by $(ConvertTo-HtmlSafe $env:COMPUTERNAME)$(if ($env:BUILD_BUILDID) { ', pipeline run ' + $env:BUILD_BUILDID }). Migration paths are hints from redirect URIs and ADO data; confirm before acting.</p></body></html>")
+$htmlText = $html.ToString()
+[IO.File]::WriteAllText($htmlPath, $htmlText, (New-Object Text.UTF8Encoding($false)))
+
+Write-Host ''
+$statusCounts | Format-Table -AutoSize | Out-String -Width 250 | Write-Host
+$pathCounts | Format-Table -AutoSize | Out-String -Width 250 | Write-Host
+Write-Host "Federated: $fedCount / $($appRows.Count) ($pct%)  Quick wins: $($quickWins.Count)"
+Write-Host "CSV     : $csvPath"
+Write-Host "HTML    : $htmlPath"
+Write-Host "Snapshot: $snapshotPath"
+
+#endregion
+
+#region Email
+
+if ($SendEmail) {
+    $to = $ReportRecipients
+    $subject = "Entra federation status: $pct% federated, $(@($sorted | Where-Object Status -eq $S_Secret).Count) secret-based, $($quickWins.Count) quick wins ($TenantLabel)"
+    if ($OverrideRecipient) {
+        $subject = "[TEST - for: $($to -join ', ')] $subject"
+        $to = @($OverrideRecipient)
+    }
+    Send-GraphMail -Token $mailToken -From $SenderMailbox -To $to -Subject $subject -Html $htmlText -AttachmentPath $csvPath
+    Write-Host "Report sent to $($to -join ', ')"
+}
+
+#endregion
